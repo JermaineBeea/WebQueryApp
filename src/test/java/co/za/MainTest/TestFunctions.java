@@ -2,7 +2,8 @@ package co.za.MainTest;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import co.za.Main.QueryFunction;
+
+import co.za.Main.WebApplication.QueryFunction;
 
 public class TestFunctions {
 

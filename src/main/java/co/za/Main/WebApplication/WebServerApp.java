@@ -1,4 +1,4 @@
-package co.za.Main;
+package co.za.Main.WebApplication;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;

@@ -1,4 +1,4 @@
-package co.za.Main;
+package co.za.Main.WebApplication;
 
 public class QueryFunction {
 
