@@ -1,27 +1,27 @@
-package za.co.wethinkcode;
+package co.za.Main;
 
 public class QueryFunction {
 
-    int variableA;
-    int variableB;
-    int variableC;
+    Long variableA;
+    Long variableB;
+    Long variableC;
 
-    public QueryFunction(int argA, int argB, int argC){
+    public QueryFunction(Long argA, Long argB, Long argC){
         this.variableA = argA;
         this.variableB = argB;
         this.variableC = argC;
     }
     
     // General function. a = b + c
-    public int functionA(){
+    public Long returnA(){
         return variableB + variableC;
     }
 
-    public int functionB(){
+    public Long returnB(){
         return variableA - variableC;
     }
 
-    public int functionC(){
+    public Long returnC(){
         return variableA - variableB;
     }
 }
