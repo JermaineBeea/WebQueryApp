@@ -3,230 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Variable Query Web Application</title>
+    <title>Variable Query App</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
+        
         .container {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
         }
+        
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 30px;
+            font-size: 2em;
+            font-weight: 300;
         }
+        
+        .table-container {
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            background: white;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
+        
         th {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-            font-weight: bold;
+            padding: 16px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1.1em;
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+        
+        td {
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
         }
+        
+        tr:hover td {
+            background-color: #f8f9fa;
+        }
+        
+        .variable-cell {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.2em;
+        }
+        
         input[type="number"] {
             width: 80px;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             text-align: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
         }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        
+        .query-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            background: #ecf0f1;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+            min-width: 40px;
+        }
+        
         .button-container {
             text-align: center;
-            margin: 20px 0;
+            margin: 30px 0;
         }
+        
         button {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-            padding: 12px 24px;
+            padding: 14px 32px;
             border: none;
-            border-radius: 4px;
+            border-radius: 25px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: 500;
             margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
+        
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
         button:disabled {
-            background-color: #cccccc;
+            background: #cccccc;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
+        
         .message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 8px;
             text-align: center;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
         }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .success {
-            background-color: #d4edda;
+            background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        
         .error {
-            background-color: #f8d7da;
+            background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        
         .info {
-            background-color: #e3f2fd;
-            color: #0d47a1;
-            border: 1px solid #bbdefb;
-            margin-bottom: 20px;
+            background: #e8f4fd;
+            color: #0c5460;
+            border: 1px solid #b8daff;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+            
+            input[type="number"] {
+                width: 60px;
+            }
+            
+            button {
+                padding: 12px 24px;
+                margin: 5px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Variable Query Web Application</h1>
+        <h1>Variable Query App</h1>
         
         <div class="message info">
-            Enter values in the 'Value' column and click 'Run Query' to update the 'Query' column
+            Enter values and click "Calculate Query" to see results
         </div>
         
-        <table id="variableTable">
-            <thead>
-                <tr>
-                    <th>Variable</th>
-                    <th>Value</th>
-                    <th>Query</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>a</td>
-                    <td><input type="number" id="value_a" value="0" onchange="updateValue('a', this.value)"></td>
-                    <td id="query_a">0</td>
-                </tr>
-                <tr>
-                    <td>b</td>
-                    <td><input type="number" id="value_b" value="0" onchange="updateValue('b', this.value)"></td>
-                    <td id="query_b">0</td>
-                </tr>
-                <tr>
-                    <td>c</td>
-                    <td><input type="number" id="value_c" value="0" onchange="updateValue('c', this.value)"></td>
-                    <td id="query_c">0</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Value (Input)</th>
+                        <th>Query (Result)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="variable-cell">A</td>
+                        <td><input type="number" id="valueA" value="0" placeholder="0"></td>
+                        <td><span class="query-value" id="queryA">0</span></td>
+                    </tr>
+                    <tr>
+                        <td class="variable-cell">B</td>
+                        <td><input type="number" id="valueB" value="0" placeholder="0"></td>
+                        <td><span class="query-value" id="queryB">0</span></td>
+                    </tr>
+                    <tr>
+                        <td class="variable-cell">C</td>
+                        <td><input type="number" id="valueC" value="0" placeholder="0"></td>
+                        <td><span class="query-value" id="queryC">0</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         
         <div class="button-container">
-            <button onclick="runQuery()" id="queryButton">Run Query</button>
-            <button onclick="refreshData()">Refresh Data</button>
+            <button onclick="calculateQuery()" id="calculateBtn">Calculate Query</button>
+            <button onclick="resetValues()">Reset All</button>
         </div>
         
         <div id="messageArea"></div>
     </div>
 
     <script>
-        // Load initial data when page loads
-        window.onload = function() {
-            refreshData();
+        // Application state - only stores 6 values
+        let appState = {
+            values: { a: 0, b: 0, c: 0 },
+            queries: { a: 0, b: 0, c: 0 }
         };
         
-        // Update value in application table
+        // Update input values in real-time
+        document.getElementById('valueA').addEventListener('input', (e) => updateValue('a', e.target.value));
+        document.getElementById('valueB').addEventListener('input', (e) => updateValue('b', e.target.value));
+        document.getElementById('valueC').addEventListener('input', (e) => updateValue('c', e.target.value));
+        
         function updateValue(variable, value) {
-            fetch('/api/update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    variable: variable,
-                    value: value
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage('Value updated successfully', 'success');
-                } else {
-                    showMessage('Error updating value: ' + data.error, 'error');
-                }
-            })
-            .catch(error => {
-                showMessage('Network error: ' + error.message, 'error');
-            });
+            appState.values[variable] = parseInt(value) || 0;
         }
         
-        // Run query and update table
-        function runQuery() {
-            const button = document.getElementById('queryButton');
+        async function calculateQuery() {
+            const button = document.getElementById('calculateBtn');
             button.disabled = true;
-            button.textContent = 'Processing...';
+            button.textContent = 'Calculating...';
             
-            fetch('/api/query', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update query columns with results
-                    document.getElementById('query_a').textContent = data.results.a;
-                    document.getElementById('query_b').textContent = data.results.b;
-                    document.getElementById('query_c').textContent = data.results.c;
-                    
-                    showMessage('Query executed successfully!', 'success');
-                } else {
-                    showMessage('Error running query: ' + data.error, 'error');
-                }
-            })
-            .catch(error => {
-                showMessage('Network error: ' + error.message, 'error');
-            })
-            .finally(() => {
-                button.disabled = false;
-                button.textContent = 'Run Query';
-            });
-        }
-        
-        // Refresh data from server
-        function refreshData() {
-            fetch('/api/data')
-            .then(response => response.json())
-            .then(data => {
-                data.data.forEach(row => {
-                    document.getElementById('value_' + row.variable).value = row.value;
-                    document.getElementById('query_' + row.variable).textContent = row.query;
+            try {
+                // Send values to server
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(appState.values)
                 });
-                showMessage('Data refreshed', 'success');
-            })
-            .catch(error => {
-                showMessage('Error refreshing data: ' + error.message, 'error');
-            });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update query results
+                    appState.queries = data.results;
+                    document.getElementById('queryA').textContent = data.results.a;
+                    document.getElementById('queryB').textContent = data.results.b;
+                    document.getElementById('queryC').textContent = data.results.c;
+                    
+                    showMessage('Query calculated successfully!', 'success');
+                } else {
+                    showMessage('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Calculate Query';
+            }
         }
         
-        // Show message to user
+        function resetValues() {
+            appState.values = { a: 0, b: 0, c: 0 };
+            appState.queries = { a: 0, b: 0, c: 0 };
+            
+            document.getElementById('valueA').value = 0;
+            document.getElementById('valueB').value = 0;
+            document.getElementById('valueC').value = 0;
+            document.getElementById('queryA').textContent = 0;
+            document.getElementById('queryB').textContent = 0;
+            document.getElementById('queryC').textContent = 0;
+            
+            showMessage('Values reset to zero', 'success');
+        }
+        
         function showMessage(message, type) {
             const messageArea = document.getElementById('messageArea');
-            messageArea.innerHTML = '<div class="message ' + type + '">' + message + '</div>';
-            
-            // Clear message after 3 seconds
-            setTimeout(() => {
-                messageArea.innerHTML = '';
-            }, 3000);
+            messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => messageArea.innerHTML = '', 3000);
         }
+        
+        // Initialize on page load
+        window.onload = function() {
+            showMessage('Application ready', 'success');
+        };
     </script>
 </body>
 </html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variable Query Web Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #bbdefb;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Variable Query Web Application</h1>
+        
+        <div class="message info">
+            Enter values in the 'Value' column and click 'Run Query' to update the 'Query' column
+        </div>
+        
+        <table id="variableTable">
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Value</th>
+                    <th>Query</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>a</td>
+                    <td><input type="number" id="value_a" value="0" onchange="updateValue('a', this.value)"></td>
+                    <td id="query_a">0</td>
+                </tr>
+                <tr>
+                    <td>b</td>
+                    <td><input type="number" id="value_b" value="0" onchange="updateValue('b', this.value)"></td>
+                    <td id="query_b">0</td>
+                </tr>
+                <tr>
+                    <td>c</td>
+                    <td><input type="number" id="value_c" value="0" onchange="updateValue('c', this.value)"></td>
+                    <td id="query_c">0</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="button-container">
+            <button onclick="runQuery()" id="queryButton">Run Query</button>
+            <button onclick="refreshData()">Refresh Data</button>
+        </div>
+        
+        <div id="messageArea"></div>
+    </div>
+
+    <script>
+        // Load initial data when page loads
+        window.onload = function() {
+            refreshData();
+        };
+        
+        // Update value in application table
+        function updateValue(variable, value) {
+            fetch('/api/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    variable: variable,
+                    value: value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Value updated successfully', 'success');
+                } else {
+                    showMessage('Error updating value: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Network error: ' + error.message, 'error');
+            });
+        }
+        
+        // Run query and update table
+        function runQuery() {
+            const button = document.getElementById('queryButton');
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            
+            fetch('/api/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update query columns with results
+                    document.getElementById('query_a').textContent = data.results.a;
+                    document.getElementById('query_b').textContent = data.results.b;
+                    document.getElementById('query_c').textContent = data.results.c;
+                    
+                    showMessage('Query executed successfully!', 'success');
+                } else {
+                    showMessage('Error running query: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Network error: ' + error.message, 'error');
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = 'Run Query';
+            });
+        }
+        
+        // Refresh data from server
+        function refreshData() {
+            fetch('/api/data')
+            .then(response => response.json())
+            .then(data => {
+                data.data.forEach(row => {
+                    document.getElementById('value_' + row.variable).value = row.value;
+                    document.getElementById('query_' + row.variable).textContent = row.query;
+                });
+                showMessage('Data refreshed', 'success');
+            })
+            .catch(error => {
+                showMessage('Error refreshing data: ' + error.message, 'error');
+            });
+        }
+        
+        // Show message to user
+        function showMessage(message, type) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = '<div class="message ' + type + '">' + message + '</div>';
+            
+            // Clear message after 3 seconds
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
