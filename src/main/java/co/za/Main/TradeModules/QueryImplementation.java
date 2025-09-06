@@ -12,9 +12,9 @@ public class QueryImplementation {
     public static void main(String[] args) {
         // Initialize with example trading parameters
         boolean basedOnExecution = true;
-        BigDecimal spread = new BigDecimal("0.001");  // 0.1% spread
-        BigDecimal rateKA = new BigDecimal("0.95");   // 95% rate
-        BigDecimal ratePN = new BigDecimal("0.98");   // 98% rate
+        BigDecimal spread = new BigDecimal("0.01");  // 0.1% spread
+        BigDecimal rateKA = new BigDecimal("17.7055");   // 95% rate
+        BigDecimal ratePN = new BigDecimal("1.0");   // 98% rate
         
         // Initialize database with trading parameters
         db = new VariableDatabase(basedOnExecution, spread, rateKA, ratePN);

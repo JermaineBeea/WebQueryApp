@@ -318,6 +318,13 @@
                 padding: 8px;
             }
         }
+
+        .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+}
+
     </style>
 </head>
 <body>
@@ -343,17 +350,17 @@
                         <label for="ratePN">Rate PN:</label>
                         <input type="number" id="ratePN" step="0.01" value="0.98">
                     </div>
-                    <div class="control-group">
-                        <label for="basedOnExecution">Based on Execution:</label>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="runQuery()">Run Calculations</button>
+                    <button class="btn btn-secondary" onclick="loadData()">Refresh Data</button>
+                    <div class="toggle-container">
+                        <label for="basedOnExecution" style="margin-right: 8px; font-weight: 600; color: #495057;">Based on Execution:</label>
                         <label class="toggle-switch">
                             <input type="checkbox" id="basedOnExecution" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
-                </div>
-                <div class="button-group">
-                    <button class="btn btn-primary" onclick="runQuery()">Run Calculations</button>
-                    <button class="btn btn-secondary" onclick="loadData()">Refresh Data</button>
                 </div>
             </div>
 
