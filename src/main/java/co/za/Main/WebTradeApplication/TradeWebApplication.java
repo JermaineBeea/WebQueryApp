@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 public class TradeWebApplication {
     
     private HttpServer server;
-    private String filename = "trade-index.html";
+    private String filename = "trade-index3.html";
     
     public TradeWebApplication() throws IOException {
         setupServer();
