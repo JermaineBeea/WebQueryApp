@@ -8,15 +8,9 @@ public class TradeQueryImplementation {
     
     private boolean basedOnExecution;
     private TradeFunction tradeFunction;
-    private BigDecimal spread;
-    private BigDecimal rateKA;
-    private BigDecimal ratePN;
     
     public TradeQueryImplementation(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
         this.basedOnExecution = basedOnExecution;
-        this.spread = spread;
-        this.rateKA = rateKA;
-        this.ratePN = ratePN;
         this.tradeFunction = new TradeFunction(basedOnExecution, spread, rateKA, ratePN);
         
         System.out.println("=== Enhanced Trade Query Implementation Initialized ===");

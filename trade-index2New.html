@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: inline-block;
+            margin: 10px 15px;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .control-group input, .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 150px;
+        }
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toggle input[type="checkbox"] {
+            width: auto;
+        }
+        .buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .notification {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .notification.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .notification.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Trade Application</h1>
+            <p>Trading Calculator with Variable Parameters</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Execution Mode:</label>
+                <div class="toggle">
+                    <span>Standard</span>
+                    <input type="checkbox" id="basedOnExecution" checked>
+                    <span>Execution-Based</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label for="spread">Spread:</label>
+                <input type="number" id="spread" step="0.001">
+            </div>
+            
+            <div class="control-group">
+                <label for="rateKA">Rate KA:</label>
+                <input type="number" id="rateKA" step="0.01">
+            </div>
+            
+            <div class="control-group">
+                <label for="ratePN">Rate PN:</label>
+                <input type="number" id="ratePN" step="0.01">
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="runQuery()">Run Calculations</button>
+            <button class="btn btn-secondary" onclick="loadData()">Refresh Data</button>
+            <button class="btn btn-success" onclick="resetDefaults()">Reset to Defaults</button>
+        </div>
+
+        <div id="notification" class="notification" style="display: none;"></div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Minimum</th>
+                    <th>Maximum</th>
+                    <th>Factor Min</th>
+                    <th>Factor Max</th>
+                    <th>Return Min</th>
+                    <th>Return Max</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <tr>
+                    <td colspan="7" class="loading">Loading data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // =============================================================================
+        // DEFAULT CONSTANTS - From VariableDatabase defaults
+        // =============================================================================
+        const DEFAULT_TRADE_PROFIT_MIN = "5000";
+        const DEFAULT_TRADE_PROFIT_MAX = "10000";
+        const DEFAULT_TRADE_AMOUNT_MIN = "25000";
+        const DEFAULT_TRADE_AMOUNT_MAX = "50000";
+        const DEFAULT_BUY_VARIABLE_MIN = "0.0";
+        const DEFAULT_BUY_VARIABLE_MAX = "0.0";
+        const DEFAULT_SELL_VARIABLE_MIN = "0.0";
+        const DEFAULT_SELL_VARIABLE_MAX = "0.0";
+        const DEFAULT_PROFIT_FACTOR_MIN = "4";
+        const DEFAULT_PROFIT_FACTOR_MAX = "2";
+        
+        const DEFAULT_BASED_ON_EXECUTION = true;
+        const DEFAULT_SPREAD = "0.001";
+        const DEFAULT_RATE_KA = "0.95";
+        const DEFAULT_RATE_PN = "0.98";
+
+        // =============================================================================
+        // APPLICATION STATE
+        // =============================================================================
+        let currentData = [];
+
+        // =============================================================================
+        // INITIALIZATION
+        // =============================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Trade Application initialized');
+            initializeDefaults();
+            loadData();
+        });
+
+        function initializeDefaults() {
+            document.getElementById('basedOnExecution').checked = DEFAULT_BASED_ON_EXECUTION;
+            document.getElementById('spread').value = DEFAULT_SPREAD;
+            document.getElementById('rateKA').value = DEFAULT_RATE_KA;
+            document.getElementById('ratePN').value = DEFAULT_RATE_PN;
+        }
+
+        function resetDefaults() {
+            initializeDefaults();
+            showNotification('Reset to default values', 'success');
+        }
+
+        // =============================================================================
+        // API COMMUNICATION
+        // =============================================================================
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                const result = await response.json();
+                
+                if (result.data) {
+                    currentData = result.data;
+                    displayData(result.data);
+                } else {
+                    throw new Error('No data received');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showNotification('Error loading data: ' + error.message, 'error');
+            }
+        }
+
+        async function runQuery() {
+            const basedOnExecution = document.getElementById('basedOnExecution').checked;
+            const spread = document.getElementById('spread').value;
+            const rateKA = document.getElementById('rateKA').value;
+            const ratePN = document.getElementById('ratePN').value;
+
+            const queryData = {
+                basedOnExecution: basedOnExecution,
+                spread: spread,
+                rateKA: rateKA,
+                ratePN: ratePN
+            };
+
+            try {
+                showNotification('Running calculations...', 'success');
+                
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(queryData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    currentData = result.data.data;
+                    displayData(result.data.data);
+                    showNotification(result.message, 'success');
+                } else {
+                    throw new Error(result.error || 'Query failed');
+                }
+            } catch (error) {
+                console.error('Error running query:', error);
+                showNotification('Error running query: ' + error.message, 'error');
+            }
+        }
+
+        async function updateVariables() {
+            try {
+                showNotification('Updating variables...', 'success');
+                
+                // Update all variables
+                const updates = [
+                    { variable: 'tradeprofit', column: 'minimum', value: document.getElementById('tradeProfitMin').value },
+                    { variable: 'tradeprofit', column: 'maximum', value: document.getElementById('tradeProfitMax').value },
+                    { variable: 'tradeamount', column: 'minimum', value: document.getElementById('tradeAmountMin').value },
+                    { variable: 'tradeamount', column: 'maximum', value: document.getElementById('tradeAmountMax').value },
+                    { variable: 'buyvariable', column: 'minimum', value: document.getElementById('buyVariableMin').value },
+                    { variable: 'buyvariable', column: 'maximum', value: document.getElementById('buyVariableMax').value },
+                    { variable: 'sellvariable', column: 'minimum', value: document.getElementById('sellVariableMin').value },
+                    { variable: 'sellvariable', column: 'maximum', value: document.getElementById('sellVariableMax').value },
+                    { variable: 'profitfactor', column: 'minimum', value: document.getElementById('profitFactorMin').value },
+                    { variable: 'profitfactor', column: 'maximum', value: document.getElementById('profitFactorMax').value }
+                ];
+
+                for (const update of updates) {
+                    const response = await fetch('/api/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(update)
+                    });
+
+                    const result = await response.json();
+                    if (!result.success) {
+                        throw new Error(`Failed to update ${update.variable} ${update.column}: ${result.error}`);
+                    }
+                }
+
+                showNotification('All variables updated successfully!', 'success');
+                loadData(); // Refresh the display
+                
+            } catch (error) {
+                console.error('Error updating variables:', error);
+                showNotification('Error updating variables: ' + error.message, 'error');
+            }
+        }
+
+        // =============================================================================
+        // UI FUNCTIONS
+        // =============================================================================
+        function displayData(data) {
+            const tbody = document.getElementById('dataTableBody');
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No data available</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(row => `
+                <tr>
+                    <td style="font-weight: bold; text-transform: capitalize;">${row.variable}</td>
+                    <td style="font-family: monospace;">${row.minimum}</td>
+                    <td style="font-family: monospace;">${row.maximum}</td>
+                    <td style="font-family: monospace;">${row.factormin}</td>
+                    <td style="font-family: monospace;">${row.factormax}</td>
+                    <td style="font-family: monospace;">${row.returnmin}</td>
+                    <td style="font-family: monospace;">${row.returnmax}</td>
+                </tr>
+            `).join('');
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
