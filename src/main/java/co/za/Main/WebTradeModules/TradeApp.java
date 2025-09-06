@@ -1,0 +1,24 @@
+package  co.za.Main.WebTradeModules;
+
+import java.io.IOException;
+
+public class TradeApp {
+    public static void main(String[] args) {
+        try {
+            TradeWebApplication app = new TradeWebApplication();
+            
+            // Add shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Shutting down trade server...");
+                app.stop();
+            }));
+            
+            System.out.println("Trade Web Server is running. Access at: http://localhost:8080");
+            System.out.println("Press Ctrl+C to stop the server.");
+            
+        } catch (IOException e) {
+            System.err.println("Failed to start trade server: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Variables Web Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .variables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .variable-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .variable-card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .results-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .result-item {
+            padding: 8px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .result-item label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .result-item span {
+            color: #333;
+            font-family: monospace;
+        }
+
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Trade Variables Web Application</h1>
+        
+        <div class="controls">
+            <div class="toggle-container">
+                <label for="executionToggle" style="cursor: pointer;">Based on Execution:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="executionToggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <span id="executionStatus" style="margin-left: 10px; font-weight: bold; color: #2196F3;">ON</span>
+            </div>
+            
+            <button class="btn" id="runQueryBtn">Run Trade Calculations</button>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+        
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Processing trade calculations...</p>
+        </div>
+
+        <div class="variables-grid" id="variablesGrid">
+            <!-- Variables will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        let currentData = {};
+        const variables = [
+            { name: 'tradeprofit', label: 'Trade Profit' },
+            { name: 'profitfactor', label: 'Profit Factor' },
+            { name: 'tradeamount', label: 'Trade Amount' },
+            { name: 'buyvariable', label: 'Buy Variable' },
+            { name: 'sellvariable', label: 'Sell Variable' }
+        ];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadData();
+        });
+
+        function setupEventListeners() {
+            // Toggle switch
+            const toggle = document.getElementById('executionToggle');
+            const status = document.getElementById('executionStatus');
+            
+            toggle.addEventListener('change', function() {
+                status.textContent = this.checked ? 'ON' : 'OFF';
+            });
+
+            // Run query button
+            document.getElementById('runQueryBtn').addEventListener('click', runQuery);
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                const result = await response.json();
+                
+                if (result.data) {
+                    currentData = {};
+                    result.data.forEach(item => {
+                        currentData[item.variable] = item;
+                    });
+                    renderVariables();
+                }
+            } catch (error) {
+                showMessage('Error loading data: ' + error.message, 'error');
+            }
+        }
+
+        function renderVariables() {
+            const grid = document.getElementById('variablesGrid');
+            grid.innerHTML = '';
+
+            variables.forEach(variable => {
+                const data = currentData[variable.name] || {};
+                const card = createVariableCard(variable, data);
+                grid.appendChild(card);
+            });
+        }
+
+        function createVariableCard(variable, data) {
+            const card = document.createElement('div');
+            card.className = 'variable-card';
+            
+            card.innerHTML = `
+                <h3>${variable.label}</h3>
+                
+                <div class="input-group">
+                    <label for="${variable.name}_min">Minimum Value:</label>
+                    <input type="number" step="any" id="${variable.name}_min" 
+                           value="${data.minimum || '0'}"
+                           onchange="updateValue('${variable.name}', 'minimum', this.value)">
+                </div>
+                
+                <div class="input-group">
+                    <label for="${variable.name}_max">Maximum Value:</label>
+                    <input type="number" step="any" id="${variable.name}_max" 
+                           value="${data.maximum || '0'}"
+                           onchange="updateValue('${variable.name}', 'maximum', this.value)">
+                </div>
+                
+                <div class="results-section">
+                    <h4>Calculation Results:</h4>
+                    <div class="results-grid">
+                        <div class="result-item">
+                            <label>Factor Min:</label>
+                            <span>${data.factormin || '0'}</span>
+                        </div>
+                        <div class="result-item">
+                            <label>Factor Max:</label>
+                            <span>${data.factormax || '0'}</span>
+                        </div>
+                        <div class="result-item">
+                            <label>Return Min:</label>
+                            <span>${data.returnmin || '0'}</span>
+                        </div>
+                        <div class="result-item">
+                            <label>Return Max:</label>
+                            <span>${data.returnmax || '0'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        async function updateValue(variable, column, value) {
+            try {
+                const response = await fetch('/api/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        variable: variable,
+                        column: column,
+                        value: value
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    // Update local data
+                    if (!currentData[variable]) currentData[variable] = {};
+                    currentData[variable][column] = value;
+                    
+                    showMessage('Value updated successfully', 'success');
+                } else {
+                    showMessage('Error updating value: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating value: ' + error.message, 'error');
+            }
+        }
+
+        async function runQuery() {
+            const basedOnExecution = document.getElementById('executionToggle').checked;
+            const button = document.getElementById('runQueryBtn');
+            const loading = document.getElementById('loadingIndicator');
+            
+            button.disabled = true;
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        basedOnExecution: basedOnExecution
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Trade calculations completed successfully!', 'success');
+                    await loadData(); // Reload data to show updated results
+                } else {
+                    showMessage('Error running calculations: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error running calculations: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('statusMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = `status-message status-${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
