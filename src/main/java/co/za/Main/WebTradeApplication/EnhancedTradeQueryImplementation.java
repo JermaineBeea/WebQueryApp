@@ -96,18 +96,9 @@ public class EnhancedTradeQueryImplementation {
             if (buyVariableMax.compareTo(BigDecimal.ZERO) > 0 && sellVariableMin.compareTo(BigDecimal.ZERO) > 0 &&
                 buyVariableMin.compareTo(BigDecimal.ZERO) > 0 && sellVariableMax.compareTo(BigDecimal.ZERO) > 0) {
                 
+                // Let TradeFunction handle execution mode - NO additional adjustments
                 BigDecimal tradeProfitFactorMin = tradeFunction.returnProfitFactor(sellVariableMin, buyVariableMax);
                 BigDecimal tradeProfitFactorMax = tradeFunction.returnProfitFactor(sellVariableMax, buyVariableMin);
-                
-                // Apply execution mode modifier
-                if (basedOnExecution) {
-                    // In execution mode, apply spread effects
-                    BigDecimal spreadEffect = BigDecimal.ONE.subtract(spread);
-                    tradeProfitFactorMin = tradeProfitFactorMin.multiply(spreadEffect);
-                    tradeProfitFactorMax = tradeProfitFactorMax.multiply(spreadEffect);
-                    System.out.println("Applied execution-based spread effect: " + spreadEffect);
-                }
-                
                 BigDecimal tradeProfitMinResult = tradeFunction.returnProfit(tradeAmountMin, sellVariableMin, buyVariableMax);
                 BigDecimal tradeProfitMaxResult = tradeFunction.returnProfit(tradeAmountMax, sellVariableMax, buyVariableMin);
                 
@@ -131,17 +122,9 @@ public class EnhancedTradeQueryImplementation {
                                            BigDecimal profitFactorMin, BigDecimal profitFactorMax) throws SQLException {
         try {
             if (tradeAmountMax.compareTo(BigDecimal.ZERO) > 0 && tradeAmountMin.compareTo(BigDecimal.ZERO) > 0) {
+                // Let TradeFunction handle execution mode - NO additional adjustments
                 BigDecimal factorReturnMin = tradeFunction.returnFactorBasedOnAmount(tradeProfitMin, tradeAmountMax);
                 BigDecimal factorReturnMax = tradeFunction.returnFactorBasedOnAmount(tradeProfitMax, tradeAmountMin);
-                
-                // Apply execution mode modifier to profit factors
-                if (basedOnExecution) {
-                    // In execution mode, reduce profit factors due to execution costs
-                    BigDecimal executionCostFactor = BigDecimal.ONE.subtract(spread.multiply(new BigDecimal("0.5")));
-                    factorReturnMin = factorReturnMin.multiply(executionCostFactor);
-                    factorReturnMax = factorReturnMax.multiply(executionCostFactor);
-                    System.out.println("Applied execution-based cost factor: " + executionCostFactor);
-                }
                 
                 db.updateQueryResult("profitfactor", profitFactorMin, profitFactorMax, 
                                    factorReturnMin, factorReturnMax);
@@ -167,19 +150,11 @@ public class EnhancedTradeQueryImplementation {
                 buyVariableMax.compareTo(BigDecimal.ZERO) > 0 && buyVariableMin.compareTo(BigDecimal.ZERO) > 0 &&
                 sellVariableMin.compareTo(BigDecimal.ZERO) > 0 && sellVariableMax.compareTo(BigDecimal.ZERO) > 0) {
                 
+                // Let TradeFunction handle execution mode - NO additional adjustments
                 BigDecimal tradeAmountProfitFactorMin = tradeFunction.returnFactorTradeAmount(profitFactorMin, tradeProfitMax);
                 BigDecimal tradeAmountProfitFactorMax = tradeFunction.returnFactorTradeAmount(profitFactorMax, tradeProfitMin);
                 BigDecimal tradeAmountProfitMinResult = tradeFunction.returnTradeAmount(tradeProfitMin, sellVariableMin, buyVariableMax);
                 BigDecimal tradeAmountProfitMaxResult = tradeFunction.returnTradeAmount(tradeProfitMax, sellVariableMax, buyVariableMin);
-                
-                // Apply execution mode adjustments
-                if (basedOnExecution) {
-                    // In execution mode, increase required trade amounts due to execution costs
-                    BigDecimal executionMultiplier = BigDecimal.ONE.add(spread);
-                    tradeAmountProfitMinResult = tradeAmountProfitMinResult.multiply(executionMultiplier);
-                    tradeAmountProfitMaxResult = tradeAmountProfitMaxResult.multiply(executionMultiplier);
-                    System.out.println("Applied execution-based amount multiplier: " + executionMultiplier);
-                }
                 
                 db.updateQueryResult("tradeamount", tradeAmountProfitFactorMin, tradeAmountProfitFactorMax, 
                                    tradeAmountProfitMinResult, tradeAmountProfitMaxResult);
@@ -205,19 +180,11 @@ public class EnhancedTradeQueryImplementation {
                 buyVariableMin.compareTo(BigDecimal.ZERO) > 0 && buyVariableMax.compareTo(BigDecimal.ZERO) > 0 &&
                 profitFactorMin.compareTo(BigDecimal.ZERO) != 0 && profitFactorMax.compareTo(BigDecimal.ZERO) != 0) {
                 
+                // Let TradeFunction handle execution mode - NO additional adjustments
                 BigDecimal sellVariableProfitMinResult = tradeFunction.returnSellVariable(tradeAmountMax, tradeProfitMin, buyVariableMin);
                 BigDecimal sellVariableProfitMaxResult = tradeFunction.returnSellVariable(tradeAmountMin, tradeProfitMax, buyVariableMax);
                 BigDecimal sellVariableProfitFactorMin = tradeFunction.returnFactorSellVariable(profitFactorMin, buyVariableMax);
                 BigDecimal sellVariableProfitFactorMax = tradeFunction.returnFactorSellVariable(profitFactorMax, buyVariableMin);
-                
-                // Apply execution mode adjustments to sell variables
-                if (basedOnExecution) {
-                    // In execution mode, adjust sell prices to account for bid-ask spread
-                    BigDecimal bidAskAdjustment = BigDecimal.ONE.subtract(spread.multiply(new BigDecimal("0.5")));
-                    sellVariableProfitMinResult = sellVariableProfitMinResult.multiply(bidAskAdjustment);
-                    sellVariableProfitMaxResult = sellVariableProfitMaxResult.multiply(bidAskAdjustment);
-                    System.out.println("Applied execution-based bid-ask adjustment: " + bidAskAdjustment);
-                }
                 
                 db.updateQueryResult("sellvariable", sellVariableProfitFactorMin, sellVariableProfitFactorMax, 
                                    sellVariableProfitMinResult, sellVariableProfitMaxResult);
@@ -243,19 +210,11 @@ public class EnhancedTradeQueryImplementation {
                 sellVariableMin.compareTo(BigDecimal.ZERO) > 0 && sellVariableMax.compareTo(BigDecimal.ZERO) > 0 &&
                 tradeAmountMax.compareTo(BigDecimal.ZERO) > 0 && tradeAmountMin.compareTo(BigDecimal.ZERO) > 0) {
                 
+                // Let TradeFunction handle execution mode - NO additional adjustments
                 BigDecimal buyVariableProfitFactorMin = tradeFunction.returnFactorBuyVariable(profitFactorMax, sellVariableMin);
                 BigDecimal buyVariableProfitFactorMax = tradeFunction.returnFactorBuyVariable(profitFactorMin, sellVariableMax);
                 BigDecimal buyVariableProfitMinResult = tradeFunction.returnBuyVariable(tradeAmountMax, tradeProfitMin, sellVariableMin);
                 BigDecimal buyVariableProfitMaxResult = tradeFunction.returnBuyVariable(tradeAmountMin, tradeProfitMax, sellVariableMax);
-                
-                // Apply execution mode adjustments to buy variables
-                if (basedOnExecution) {
-                    // In execution mode, adjust buy prices to account for bid-ask spread
-                    BigDecimal bidAskAdjustment = BigDecimal.ONE.add(spread.multiply(new BigDecimal("0.5")));
-                    buyVariableProfitMinResult = buyVariableProfitMinResult.multiply(bidAskAdjustment);
-                    buyVariableProfitMaxResult = buyVariableProfitMaxResult.multiply(bidAskAdjustment);
-                    System.out.println("Applied execution-based buy price adjustment: " + bidAskAdjustment);
-                }
                 
                 db.updateQueryResult("buyvariable", buyVariableProfitFactorMin, buyVariableProfitFactorMax, 
                                    buyVariableProfitMinResult, buyVariableProfitMaxResult);
