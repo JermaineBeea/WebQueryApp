@@ -1,5 +1,5 @@
 -- Trade Variables Database Export
--- Generated on: Sat Sep 06 14:40:29 SAST 2025
+-- Generated on: Sat Sep 06 14:56:07 SAST 2025
 
 DROP TABLE IF EXISTS trade_variables;
 
