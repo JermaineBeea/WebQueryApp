@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Calculator Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .controls-section {
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .control-group:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-group h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+            margin-bottom: 25px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(127, 140, 141, 0.3);
+        }
+
+        .data-section {
+            padding: 30px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .data-table tr:hover {
+            background-color: #e3f2fd;
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+
+        .status-message {
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: linear-gradient(135deg, #cce7ff, #b3d9ff);
+            color: #004085;
+            border: 1px solid #b3d9ff;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Trade Calculator Pro</h1>
+            <p>Advanced Trading Calculations with Real-time Analysis</p>
+        </div>
+
+        <div class="controls-section">
+            <h2 class="section-title">Configuration Parameters</h2>
+            
+            <div class="toggle-container">
+                <span class="toggle-label">Based on Execution:</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="basedOnExecution" checked>
+                    <span class="slider"></span>
+                </label>
+                <span id="toggleStatus" class="toggle-label" style="color: #27ae60;">ON</span>
+            </div>
+
+            <div class="control-grid">
+                <div class="control-group">
+                    <h3>📊 Trading Parameters</h3>
+                    <div class="input-group">
+                        <label for="spread">Spread:</label>
+                        <input type="number" id="spread" step="0.001" value="0.001" placeholder="Enter spread value">
+                    </div>
+                    <div class="input-group">
+                        <label for="rateKA">Rate KA:</label>
+                        <input type="number" id="rateKA" step="0.01" value="0.95" placeholder="Enter rate KA">
+                    </div>
+                    <div class="input-group">
+                        <label for="ratePN">Rate PN:</label>
+                        <input type="number" id="ratePN" step="0.01" value="0.98" placeholder="Enter rate PN">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>💰 Trade Profit</h3>
+                    <div class="input-group">
+                        <label for="tradeProfitMin">Minimum:</label>
+                        <input type="number" id="tradeProfitMin" value="100" placeholder="Min profit">
+                    </div>
+                    <div class="input-group">
+                        <label for="tradeProfitMax">Maximum:</label>
+                        <input type="number" id="tradeProfitMax" value="1000" placeholder="Max profit">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>💵 Trade Amount</h3>
+                    <div class="input-group">
+                        <label for="tradeAmountMin">Minimum:</label>
+                        <input type="number" id="tradeAmountMin" value="5000" placeholder="Min amount">
+                    </div>
+                    <div class="input-group">
+                        <label for="tradeAmountMax">Maximum:</label>
+                        <input type="number" id="tradeAmountMax" value="50000" placeholder="Max amount">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📈 Buy Variable</h3>
+                    <div class="input-group">
+                        <label for="buyVariableMin">Minimum:</label>
+                        <input type="number" id="buyVariableMin" step="0.01" value="1.10" placeholder="Min buy variable">
+                    </div>
+                    <div class="input-group">
+                        <label for="buyVariableMax">Maximum:</label>
+                        <input type="number" id="buyVariableMax" step="0.01" value="1.25" placeholder="Max buy variable">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📉 Sell Variable</h3>
+                    <div class="input-group">
+                        <label for="sellVariableMin">Minimum:</label>
+                        <input type="number" id="sellVariableMin" step="0.01" value="1.15" placeholder="Min sell variable">
+                    </div>
+                    <div class="input-group">
+                        <label for="sellVariableMax">Maximum:</label>
+                        <input type="number" id="sellVariableMax" step="0.01" value="1.30" placeholder="Max sell variable">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="updateAllValues()">
+                    <span id="updateButtonText">💾 Update All Values</span>
+                </button>
+                <button class="btn btn-primary" onclick="runCalculations()">
+                    <span id="calculateButtonText">🧮 Run Calculations</span>
+                </button>
+                <button class="btn btn-secondary" onclick="loadData()">
+                    <span id="loadButtonText">🔄 Refresh Data</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h2 class="section-title">Calculation Results</h2>
+            <div id="statusMessage"></div>
+            <div id="dataContainer">
+                <table class="data-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Maximum</th>
+                            <th>Minimum</th>
+                            <th>Factor Min</th>
+                            <th>Factor Max</th>
+                            <th>Return Min</th>
+                            <th>Return Max</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the interface
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupToggleListener();
+        });
+
+        // Setup toggle switch listener
+        function setupToggleListener() {
+            const toggle = document.getElementById('basedOnExecution');
+            const status = document.getElementById('toggleStatus');
+            
+            toggle.addEventListener('change', function() {
+                if (this.checked) {
+                    status.textContent = 'ON';
+                    status.style.color = '#27ae60';
+                } else {
+                    status.textContent = 'OFF';
+                    status.style.color = '#e74c3c';
+                }
+            });
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+            
+            // Auto-hide after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Show loading state for buttons
+        function setButtonLoading(buttonId, loading = true) {
+            const button = document.querySelector(`#${buttonId}`);
+            const textElement = document.querySelector(`#${buttonId}Text`);
+            
+            if (loading) {
+                button.disabled = true;
+                textElement.innerHTML = '<span class="loading"></span> Processing...';
+            } else {
+                button.disabled = false;
+                // Restore original text based on button
+                if (buttonId === 'updateButton') textElement.textContent = '💾 Update All Values';
+                else if (buttonId === 'calculateButton') textElement.textContent = '🧮 Run Calculations';
+                else if (buttonId === 'loadButton') textElement.textContent = '🔄 Refresh Data';
+            }
+        }
+
+        // Load data from server
+        async function loadData() {
+            try {
+                showStatus('📊 Loading data...', 'info');
+                const response = await fetch('/api/data');
+                const result = await response.json();
+                
+                if (result.data) {
+                    populateTable(result.data);
+                    showStatus('✅ Data loaded successfully!', 'success');
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showStatus(`❌ Error loading data: ${error.message}`, 'error');
+            }
+        }
+
+        // Populate the data table
+        function populateTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.variable}</strong></td>
+                    <td>${parseFloat(row.maximum).toFixed(6)}</td>
+                    <td>${parseFloat(row.minimum).toFixed(6)}</td>
+                    <td>${parseFloat(row.factormin).toFixed(6)}</td>
+                    <td>${parseFloat(row.factormax).toFixed(6)}</td>
+                    <td>${parseFloat(row.returnmin).toFixed(6)}</td>
+                    <td>${parseFloat(row.returnmax).toFixed(6)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update a single value
+        async function updateValue(variable, column, value) {
+            try {
+                const response = await fetch('/api/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        variable: variable,
+                        column: column,
+                        value: value.toString()
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Update failed');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error updating value:', error);
+                throw error;
+            }
+        }
+
+        // Update all values from form inputs
+        async function updateAllValues() {
+            try {
+                setButtonLoading('updateButton', true);
+                showStatus('💾 Updating all values...', 'info');
+                
+                const updates = [
+                    // Trade profit
+                    updateValue('tradeprofit', 'minimum', parseFloat(document.getElementById('tradeProfitMin').value)),
+                    updateValue('tradeprofit', 'maximum', parseFloat(document.getElementById('tradeProfitMax').value)),
+                    
+                    // Profit factor  
+                    updateValue('profitfactor', 'minimum', parseFloat(document.getElementById('profitFactorMin').value)),
+                    updateValue('profitfactor', 'maximum', parseFloat(document.getElementById('profitFactorMax').value)),
+                    
+                    // Trade amount
+                    updateValue('tradeamount', 'minimum', parseFloat(document.getElementById('tradeAmountMin').value)),
+                    updateValue('tradeamount', 'maximum', parseFloat(document.getElementById('tradeAmountMax').value)),
+                    
+                    // Buy variable
+                    updateValue('buyvariable', 'minimum', parseFloat(document.getElementById('buyVariableMin').value)),
+                    updateValue('buyvariable', 'maximum', parseFloat(document.getElementById('buyVariableMax').value)),
+                    
+                    // Sell variable
+                    updateValue('sellvariable', 'minimum', parseFloat(document.getElementById('sellVariableMin').value)),
+                    updateValue('sellvariable', 'maximum', parseFloat(document.getElementById('sellVariableMax').value))
+                ];
+                
+                await Promise.all(updates);
+                await loadData();
+                showStatus('✅ All values updated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error updating values:', error);
+                showStatus(`❌ Error updating values: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading('updateButton', false);
+            }
+        }
+
+        // Run calculations
+        async function runCalculations() {
+            try {
+                setButtonLoading('calculateButton', true);
+                showStatus('🧮 Running calculations...', 'info');
+                
+                const basedOnExecution = document.getElementById('basedOnExecution').checked;
+                const spread = parseFloat(document.getElementById('spread').value);
+                const rateKA = parseFloat(document.getElementById('rateKA').value);
+                const ratePN = parseFloat(document.getElementById('ratePN').value);
+                
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        basedOnExecution: basedOnExecution,
+                        spread: spread,
+                        rateKA: rateKA,
+                        ratePN: ratePN
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success && result.data) {
+                    populateTable(result.data.data);
+                    showStatus(`✅ Calculations completed successfully! (Execution Mode: ${basedOnExecution ? 'ON' : 'OFF'})`, 'success');
+                } else {
+                    throw new Error(result.error || 'Calculation failed');
+                }
+                
+            } catch (error) {
+                console.error('Error running calculations:', error);
+                showStatus(`❌ Error running calculations: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading('calculateButton', false);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 -- Trade Variables Database Export
--- Generated on: Sat Sep 06 11:39:17 SAST 2025
+-- Generated on: Sat Sep 06 12:36:16 SAST 2025
 
 DROP TABLE IF EXISTS trade_variables;
 
@@ -14,10 +14,10 @@ CREATE TABLE trade_variables (
 );
 
 -- Insert data
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeprofit', -88, -88, -0.0004970207, -0.0004970207, -4.627262717, -4.627262717);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('profitfactor', -0.000497021, -0.000497021, -0.000497021, -0.000497021, -0.0094522019, -0.0094522019);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeamount', 10000, 10000, 190177.113912791, 190177.113912791, 190177.228703049, 190177.228703049);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('buyvariable', 17.7055, 17.7055, 17.7055000053, 17.7055000053, 17.8655689649, 17.8655689649);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('sellvariable', 17.6967, 17.6967, 17.6966999946845, 17.6966999946845, 17.5381440392595, 17.5381440392595);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeprofit', 1000, 100, -0.07992, 0.1816363636182, -372.4, 8463.63636279);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('profitfactor', -0.000497021, -0.000497021, -0.000497021, -0.000497021, 0.00214715358615, 0.2147153598144);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeamount', 50000, 5000, -2161103.56719081, -216110.356719081, -1343.98496240599, 5913.53383517787);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('buyvariable', 1.25, 1.1, 1.1505718584, 1.3006464486, 1.14810860131695, 1.07064999997125);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('sellvariable', 1.3, 1.15, 1.24937872375, 1.0994532769, 1.10181186894476, 1.517769199768);
 
 -- End of export

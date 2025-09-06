@@ -1,4 +1,4 @@
-package  co.za.Main.WebTradeApplication;
+package co.za.Main.WebTradeApplication;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 public class TradeWebApplication {
     
     private HttpServer server;
+    private String filename = "trade-index2.html";
     
     public TradeWebApplication() throws IOException {
         setupServer();
@@ -100,7 +101,7 @@ public class TradeWebApplication {
         }
     }
     
-    // Run trade calculations
+    // Run trade calculations with enhanced parameters
     class QueryHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -115,17 +116,37 @@ public class TradeWebApplication {
             if ("POST".equals(exchange.getRequestMethod())) {
                 try {
                     String body = readBody(exchange);
+                    
+                    // Parse all parameters from the request
                     boolean basedOnExecution = parseBooleanValue(body, "basedOnExecution");
+                    BigDecimal spread = parseDecimalValue(body, "spread", new BigDecimal("0.001"));
+                    BigDecimal rateKA = parseDecimalValue(body, "rateKA", new BigDecimal("0.95"));
+                    BigDecimal ratePN = parseDecimalValue(body, "ratePN", new BigDecimal("0.98"));
+                    
+                    System.out.println("Query Parameters:");
+                    System.out.println("- Based on Execution: " + basedOnExecution);
+                    System.out.println("- Spread: " + spread);
+                    System.out.println("- Rate KA: " + rateKA);
+                    System.out.println("- Rate PN: " + ratePN);
                     
                     try (TradeVariableDatabase db = new TradeVariableDatabase()) {
-                        TradeQueryImplementation queryImpl = new TradeQueryImplementation(basedOnExecution);
+                        // Create enhanced query implementation with custom parameters
+                        EnhancedTradeQueryImplementation queryImpl = new EnhancedTradeQueryImplementation(
+                            basedOnExecution, spread, rateKA, ratePN);
                         queryImpl.populateTable(db);
                         
                         String json = buildDataJson(db);
-                        sendJsonResponse(exchange, "{\"success\":true,\"message\":\"Query executed successfully\",\"data\":" + json + "}");
+                        String responseMsg = String.format(
+                            "Query executed successfully! (Mode: %s, Spread: %s, RateKA: %s, RatePN: %s)", 
+                            basedOnExecution ? "Execution-Based" : "Standard", 
+                            spread, rateKA, ratePN
+                        );
+                        
+                        sendJsonResponse(exchange, "{\"success\":true,\"message\":\"" + responseMsg + "\",\"data\":" + json + "}");
                     }
                     
                 } catch (Exception e) {
+                    e.printStackTrace();
                     sendErrorResponse(exchange, "Error running query: " + e.getMessage());
                 }
             }
@@ -158,6 +179,17 @@ public class TradeWebApplication {
         return matcher.find() && "true".equals(matcher.group(1));
     }
     
+    private BigDecimal parseDecimalValue(String json, String key, BigDecimal defaultValue) {
+        try {
+            Pattern pattern = Pattern.compile("\"" + key + "\"\\s*:\\s*([0-9]*\\.?[0-9]+)");
+            Matcher matcher = pattern.matcher(json);
+            return matcher.find() ? new BigDecimal(matcher.group(1)) : defaultValue;
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing decimal value for " + key + ", using default: " + defaultValue);
+            return defaultValue;
+        }
+    }
+    
     private void sendJsonResponse(HttpExchange exchange, String json) throws IOException {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
@@ -167,7 +199,9 @@ public class TradeWebApplication {
     }
     
     private void sendErrorResponse(HttpExchange exchange, String error) throws IOException {
-        String json = "{\"success\":false,\"error\":\"" + error + "\"}";
+        String json = "{\"success\":false,\"error\":\"" + error.replace("\"", "\\\"") + "\"}";
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         exchange.sendResponseHeaders(500, json.getBytes().length);
         exchange.getResponseBody().write(json.getBytes());
         exchange.getResponseBody().close();
@@ -201,27 +235,39 @@ public class TradeWebApplication {
     }
     
     private String getHtmlContent() {
+        // You should save the HTML artifact I created as "trade-index.html" in your project root
         try {
             return new String(java.nio.file.Files.readAllBytes(
-                java.nio.file.Paths.get("trade-index.html")));
+                java.nio.file.Paths.get(filename)));
         } catch (Exception e) {
+            System.err.println("Could not find," + filename + "using fallback HTML");
             return getFallbackHtml();
         }
     }
     
-    private String getFallbackHtml() {
-        return """
-<!DOCTYPE html>
-<html>
-<head><title>Trade Application</title></head>
-<body>
-    <h1>Trade Web Application</h1>
-    <p>Please create trade-index.html file for the interface</p>
-</body>
-</html>
-        """;
-    }
-    
+private String getFallbackHtml() {
+    return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Trade Application</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .error { color: red; background: #ffe6e6; padding: 20px; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <h1>Trade Web Application</h1>
+            <div class="error">
+                <h3>Missing Interface File</h3>
+                <p>Please save the enhanced HTML interface as <strong>%s</strong> in your project root directory.</p>
+                <p>The interface includes controls for spread, rateKA, ratePN, and the basedOnExecution toggle.</p>
+            </div>
+        </body>
+        </html>
+        """.formatted(filename); // Java 15+ way
+}
+
     public void stop() {
         if (server != null) server.stop(0);
     }

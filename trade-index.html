@@ -36,6 +36,32 @@
             border-radius: 5px;
         }
 
+        .params-section {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .param-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .param-group input {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 80px;
+            font-size: 14px;
+        }
+
         .toggle-container {
             display: flex;
             align-items: center;
@@ -229,6 +255,21 @@
         <h1>Trade Variables Web Application</h1>
         
         <div class="controls">
+            <div class="params-section">
+                <div class="param-group">
+                    <label for="spread">Spread:</label>
+                    <input type="number" id="spread" step="0.0001" value="0.001">
+                </div>
+                <div class="param-group">
+                    <label for="rateKA">Rate KA:</label>
+                    <input type="number" id="rateKA" step="0.0001" value="0.95">
+                </div>
+                <div class="param-group">
+                    <label for="ratePN">Rate PN:</label>
+                    <input type="number" id="ratePN" step="0.0001" value="0.98">
+                </div>
+            </div>
+            
             <div class="toggle-container">
                 <label for="executionToggle" style="cursor: pointer;">Based on Execution:</label>
                 <label class="toggle-switch">
@@ -276,6 +317,7 @@
             
             toggle.addEventListener('change', function() {
                 status.textContent = this.checked ? 'ON' : 'OFF';
+                status.style.color = this.checked ? '#2196F3' : '#dc3545';
             });
 
             // Run query button
@@ -388,6 +430,10 @@
 
         async function runQuery() {
             const basedOnExecution = document.getElementById('executionToggle').checked;
+            const spread = parseFloat(document.getElementById('spread').value);
+            const rateKA = parseFloat(document.getElementById('rateKA').value);
+            const ratePN = parseFloat(document.getElementById('ratePN').value);
+            
             const button = document.getElementById('runQueryBtn');
             const loading = document.getElementById('loadingIndicator');
             
@@ -401,14 +447,17 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        basedOnExecution: basedOnExecution
+                        basedOnExecution: basedOnExecution,
+                        spread: spread,
+                        rateKA: rateKA,
+                        ratePN: ratePN
                     })
                 });
 
                 const result = await response.json();
                 
                 if (result.success) {
-                    showMessage('Trade calculations completed successfully!', 'success');
+                    showMessage(`Trade calculations completed successfully! (Mode: ${basedOnExecution ? 'ON' : 'OFF'}, Spread: ${spread}, RateKA: ${rateKA}, RatePN: ${ratePN})`, 'success');
                     await loadData(); // Reload data to show updated results
                 } else {
                     showMessage('Error running calculations: ' + result.error, 'error');
