@@ -1,13 +1,13 @@
-package co.za.Main.TradeModules;
+package co.za.Main.ConsoleApplication;
 
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Scanner;
 
-public class QueryImplementation {
+public class ConsoleImplementation {
 
     private static Scanner scanner = new Scanner(System.in);
-    private static VariableDatabase db;
+    private static ConsoleDatabase db;
 
     public static void main(String[] args) {
         // Initialize with example trading parameters
@@ -17,7 +17,7 @@ public class QueryImplementation {
         BigDecimal ratePN = new BigDecimal("1.0");   // 98% rate
         
         // Initialize database with trading parameters
-        db = new VariableDatabase(basedOnExecution, spread, rateKA, ratePN);
+        db = new ConsoleDatabase(basedOnExecution, spread, rateKA, ratePN);
 
         
         try {
@@ -42,7 +42,7 @@ public class QueryImplementation {
             // Export data
             System.out.println("\n=== Exporting Data ===");
             db.exportToSQL();
-            db.exportToCSV();
+            // db.exportToCSV();
             System.out.println("Data export completed.");
 
             // Interactive query interface

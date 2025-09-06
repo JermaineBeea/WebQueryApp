@@ -1,15 +1,19 @@
-package co.za.Main.TradeModules;
+package co.za.Main.ConsoleApplication;
 
 import java.math.BigDecimal;
 import java.sql.*;
 
-public class VariableDatabase {
+import co.za.Main.TradeModules.TradeFunction;
+
+public class ConsoleDatabase {
 
     private Connection connection;
     private TradeFunction tradeFunction;
 
-    private String dataBaseName = "variables.db";
-    private String tableName = "variables";
+    private String dataBaseName = "ConsoleDataBase.db";
+    private String tableName = "ConsoleDataBase";
+    private String FILENAME = "ConsoleDataBase";
+
 
     // Default constants
     private static final String DEFAULT_TRADE_PROFIT_MIN = "-88.000000000";
@@ -25,7 +29,7 @@ public class VariableDatabase {
 
 
 
-    public VariableDatabase(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
+    public ConsoleDatabase(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + dataBaseName);
             createTable();
@@ -176,9 +180,8 @@ public class VariableDatabase {
 
     // Export database to CSV file
     public void exportToCSV() throws SQLException {
-        String fileName = "variables.csv";
-        
-        try (java.io.FileWriter writer = new java.io.FileWriter(fileName);
+        String filename = FILENAME + ".csv";
+        try (java.io.FileWriter writer = new java.io.FileWriter(filename);
              java.io.PrintWriter printWriter = new java.io.PrintWriter(writer)) {
             
             // Write CSV header
@@ -202,7 +205,7 @@ public class VariableDatabase {
                 }
             }
             
-            System.out.println("Database exported to " + fileName + " successfully.");
+            System.out.println("Database exported to " + filename + " successfully.");
             
         } catch (java.io.IOException e) {
             throw new SQLException("Error writing to CSV file: " + e.getMessage());
@@ -211,15 +214,14 @@ public class VariableDatabase {
 
     // Export database to SQL file - FIXED VERSION
     public void exportToSQL() throws SQLException {
-        String fileName = "variables.sql";
-        
-        try (java.io.FileWriter writer = new java.io.FileWriter(fileName);
+        String filename = FILENAME + ".sql";
+        try (java.io.FileWriter writer = new java.io.FileWriter(filename);
              java.io.PrintWriter printWriter = new java.io.PrintWriter(writer)) {
             
             // Write DROP and CREATE statements
-            printWriter.println("DROP TABLE IF EXISTS variables;");
+            printWriter.println("DROP TABLE IF EXISTS " + tableName + ";");
             printWriter.println();
-            printWriter.println("CREATE TABLE variables (");
+            printWriter.println("CREATE TABLE " + tableName + " (");
             printWriter.println("    variable VARCHAR(50) DEFAULT '0',");
             printWriter.println("    maximum DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    minimum DECIMAL(20,8) DEFAULT 0,");
@@ -237,7 +239,8 @@ public class VariableDatabase {
                 
                 printWriter.println("-- Insert data");
                 while (rs.next()) {
-                    printWriter.printf("INSERT INTO variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s, %s, %s);%n",
+                    printWriter.printf("INSERT INTO %s (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s, %s, %s);%n",
+                        tableName, 
                         rs.getString("variable"),
                         rs.getBigDecimal("maximum").toPlainString(),
                         rs.getBigDecimal("minimum").toPlainString(),
@@ -252,7 +255,7 @@ public class VariableDatabase {
             printWriter.println();
             printWriter.println("-- End of export");
             
-            System.out.println("Database exported to " + fileName + " successfully.");
+            System.out.println("Database exported to " + filename + " successfully.");
             
         } catch (java.io.IOException e) {
             throw new SQLException("Error writing to SQL file: " + e.getMessage());
