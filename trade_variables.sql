@@ -1,5 +1,5 @@
 -- Trade Variables Database Export
--- Generated on: Sat Sep 06 10:31:51 SAST 2025
+-- Generated on: Sat Sep 06 11:04:00 SAST 2025
 
 DROP TABLE IF EXISTS trade_variables;
 
@@ -14,10 +14,10 @@ CREATE TABLE trade_variables (
 );
 
 -- Insert data
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeprofit', 2, 3, 0, 0, 0, 0);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('profitfactor', -1, 1, 1, -1, 3.2223415682, 2.1482277121);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeamount', 1, 1, 0, 0, 0, 0);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('buyvariable', 1, 1, 0, 0, 0, 0);
-INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('sellvariable', 1, 1, 2, 0, 4.2223415682, 3.1482277121);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeprofit', -88, -88, -0.0004970207, -0.0004970207, -4.627262717, -4.627262717);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('profitfactor', -0.000497021, -0.000497021, -0.000497021, -0.000497021, -0.0094522019, -0.0094522019);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeamount', 10000, 10000, 190177.113912791, 190177.113912791, 190177.228703049, 190177.228703049);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('buyvariable', 17.7055, 17.7055, 17.7055000053, 17.7055000053, 17.8655689649, 17.8655689649);
+INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('sellvariable', 17.6967, 17.6967, 17.6966999946845, 17.6966999946845, 17.5381440392595, 17.5381440392595);
 
 -- End of export
