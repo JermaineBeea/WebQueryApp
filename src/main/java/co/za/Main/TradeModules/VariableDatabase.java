@@ -12,16 +12,16 @@ public class VariableDatabase {
     private String tableName = "variables";
 
     // Default constants
-    private static final String DEFAULT_TRADE_PROFIT_MIN = "5000";
-    private static final String DEFAULT_TRADE_PROFIT_MAX = "10000";
-    private static final String DEFAULT_TRADE_AMOUNT_MIN = "25000";
-    private static final String DEFAULT_TRADE_AMOUNT_MAX = "50000";
-    private static final String DEFAULT_BUY_VARIABLE_MIN = "0.0";
-    private static final String DEFAULT_BUY_VARIABLE_MAX = "0.0";
-    private static final String DEFAULT_SELL_VARIABLE_MIN = "0.0";
-    private static final String DEFAULT_SELL_VARIABLE_MAX = "0.0";
-    private static final String DEFAULT_PROFIT_FACTOR_MIN = "4";
-    private static final String DEFAULT_PROFIT_FACTOR_MAX = "2";
+    private static final String DEFAULT_TRADE_PROFIT_MIN = "-88.000000000";
+    private static final String DEFAULT_TRADE_PROFIT_MAX = "-88.000000000";
+    private static final String DEFAULT_TRADE_AMOUNT_MIN = "10000";
+    private static final String DEFAULT_TRADE_AMOUNT_MAX = "10000";
+    private static final String DEFAULT_BUY_VARIABLE_MIN = "17.7055";
+    private static final String DEFAULT_BUY_VARIABLE_MAX = "17.7055";
+    private static final String DEFAULT_SELL_VARIABLE_MIN = "17.6967";
+    private static final String DEFAULT_SELL_VARIABLE_MAX = "17.6967";
+    private static final String DEFAULT_PROFIT_FACTOR_MIN = "-0.000497021";
+    private static final String DEFAULT_PROFIT_FACTOR_MAX = "-0.000497021";
 
 
 
