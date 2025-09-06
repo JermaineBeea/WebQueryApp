@@ -471,7 +471,7 @@
                     updateValue('sellvariable', 'minimum', parseFloat(document.getElementById('sellVariableMin').value)),
                     updateValue('sellvariable', 'maximum', parseFloat(document.getElementById('sellVariableMax').value))
                 ];
-                togg
+                
                 await Promise.all(updates);
                 await loadData();
                 showStatus('All values updated successfully!', 'success');

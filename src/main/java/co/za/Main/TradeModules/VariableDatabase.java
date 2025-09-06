@@ -11,6 +11,20 @@ public class VariableDatabase {
     private String dataBaseName = "variables.db";
     private String tableName = "variables";
 
+    // Default constants
+    private static final String DEFAULT_TRADE_PROFIT_MIN = "5000";
+    private static final String DEFAULT_TRADE_PROFIT_MAX = "10000";
+    private static final String DEFAULT_TRADE_AMOUNT_MIN = "25000";
+    private static final String DEFAULT_TRADE_AMOUNT_MAX = "50000";
+    private static final String DEFAULT_BUY_VARIABLE_MIN = "0.0";
+    private static final String DEFAULT_BUY_VARIABLE_MAX = "0.0";
+    private static final String DEFAULT_SELL_VARIABLE_MIN = "0.0";
+    private static final String DEFAULT_SELL_VARIABLE_MAX = "0.0";
+    private static final String DEFAULT_PROFIT_FACTOR_MIN = "4";
+    private static final String DEFAULT_PROFIT_FACTOR_MAX = "2";
+
+
+
     public VariableDatabase(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + dataBaseName);
@@ -39,27 +53,24 @@ public class VariableDatabase {
         }
     }
 
+    // Define defaults at class level or in method
     private void populateTable() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("DELETE FROM " + tableName);
-            // Populate with default values (0 for maximum and minimum)
-            String[] variables = {
-                "tradeprofit",
-                "profitfactor",
-                "tradeamount",
-                "buyvariable",
-                "sellvariable"
-            };
             
-            for (String variable : variables) {
-                stmt.execute(String.format(
-                    "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', 0, 0, 0, 0, 0, 0)",
-                    tableName, variable));
-            }
-        } catch (SQLException e) {
-            System.out.println("Error populating table: " + e.getMessage());
-            throw e;
+            // Insert with proper defaults
+            insertVariable(stmt, "tradeprofit", DEFAULT_TRADE_PROFIT_MIN, DEFAULT_TRADE_PROFIT_MAX);
+            insertVariable(stmt, "tradeamount", DEFAULT_TRADE_AMOUNT_MIN, DEFAULT_TRADE_AMOUNT_MAX);
+            insertVariable(stmt, "buyvariable", DEFAULT_BUY_VARIABLE_MIN, DEFAULT_BUY_VARIABLE_MAX);
+            insertVariable(stmt, "sellvariable", DEFAULT_SELL_VARIABLE_MIN, DEFAULT_SELL_VARIABLE_MAX);
+            insertVariable(stmt, "profitfactor", DEFAULT_PROFIT_FACTOR_MIN, DEFAULT_PROFIT_FACTOR_MAX);
         }
+    }
+
+    private void insertVariable(Statement stmt, String variable, String min, String max) throws SQLException {
+        stmt.execute(String.format(
+            "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, 0, 0, 0, 0)",
+            tableName, variable, min, max));
     }
 
     public void populateQueryVariables() {

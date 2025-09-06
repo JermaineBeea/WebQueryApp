@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import co.za.Main.TradeModules.TradeFunction;
 
-public class EnhancedTradeQueryImplementation {
+public class TradeQueryImplementation {
     
     private boolean basedOnExecution;
     private TradeFunction tradeFunction;
@@ -12,7 +12,7 @@ public class EnhancedTradeQueryImplementation {
     private BigDecimal rateKA;
     private BigDecimal ratePN;
     
-    public EnhancedTradeQueryImplementation(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
+    public TradeQueryImplementation(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
         this.basedOnExecution = basedOnExecution;
         this.spread = spread;
         this.rateKA = rateKA;

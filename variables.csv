@@ -1,0 +1,6 @@
+variable,maximum,minimum,factormin,factormax,returnmin,returnmax
+tradeprofit,10000,5000,0,0,0,0
+tradeamount,50000,25000,0,0,0,0
+buyvariable,0,0,0,0,0,0
+sellvariable,0,0,0,0,0,0
+profitfactor,2,4,0,0,0,0

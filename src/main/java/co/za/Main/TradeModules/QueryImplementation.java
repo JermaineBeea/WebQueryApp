@@ -19,23 +19,23 @@ public class QueryImplementation {
         // Initialize database with trading parameters
         db = new VariableDatabase(basedOnExecution, spread, rateKA, ratePN);
         
-        // Set initial variable ranges
-        BigDecimal tradeProfitMin = new BigDecimal("100");
-        BigDecimal tradeProfitMax = new BigDecimal("1000");
-        BigDecimal tradeAmountMin = new BigDecimal("5000");
-        BigDecimal tradeAmountMax = new BigDecimal("50000");
-        BigDecimal buyVariableMin = new BigDecimal("1.10");
-        BigDecimal buyVariableMax = new BigDecimal("1.25");
-        BigDecimal sellVariableMin = new BigDecimal("1.15");
-        BigDecimal sellVariableMax = new BigDecimal("1.30");
+        // // Set initial variable ranges
+        // BigDecimal tradeProfitMin = new BigDecimal("100");
+        // BigDecimal tradeProfitMax = new BigDecimal("1000");
+        // BigDecimal tradeAmountMin = new BigDecimal("5000");
+        // BigDecimal tradeAmountMax = new BigDecimal("50000");
+        // BigDecimal buyVariableMin = new BigDecimal("1.10");
+        // BigDecimal buyVariableMax = new BigDecimal("1.25");
+        // BigDecimal sellVariableMin = new BigDecimal("1.15");
+        // BigDecimal sellVariableMax = new BigDecimal("1.30");
         
         try {
             System.out.println("=== Trade Query System Initialization ===");
             System.out.println("Database table created and populated with default values.");
             
-            // Update variable ranges in the database
-            updateVariableRanges(tradeProfitMin, tradeProfitMax, tradeAmountMin, tradeAmountMax,
-                               buyVariableMin, buyVariableMax, sellVariableMin, sellVariableMax);
+            // // Update variable ranges in the database
+            // updateVariableRanges(tradeProfitMin, tradeProfitMax, tradeAmountMin, tradeAmountMax,
+            //                    buyVariableMin, buyVariableMax, sellVariableMin, sellVariableMax);
             
             System.out.println("Variables updated with min/max values:");
             printVariableRanges();

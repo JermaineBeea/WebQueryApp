@@ -1,17 +1,20 @@
--- Variables Database Export
--- Generated on: Sat Aug 09 19:46:58 UTC 2025
-
 DROP TABLE IF EXISTS variables;
 
 CREATE TABLE variables (
-    variable VARCHAR(10) DEFAULT '0',
-    value INTEGER DEFAULT 0,
-    query INTEGER DEFAULT 0
+    variable VARCHAR(50) DEFAULT '0',
+    maximum DECIMAL(20,8) DEFAULT 0,
+    minimum DECIMAL(20,8) DEFAULT 0,
+    factormin DECIMAL(20,8) DEFAULT 0,
+    factormax DECIMAL(20,8) DEFAULT 0,
+    returnmin DECIMAL(20,8) DEFAULT 0,
+    returnmax DECIMAL(20,8) DEFAULT 0
 );
 
 -- Insert data
-INSERT INTO variables (variable, value, query) VALUES ('a', 1, -75);
-INSERT INTO variables (variable, value, query) VALUES ('b', 2, 78);
-INSERT INTO variables (variable, value, query) VALUES ('c', -77, -1);
+INSERT INTO variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeprofit', 10000, 5000, 0, 0, 0, 0);
+INSERT INTO variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('tradeamount', 50000, 25000, 0, 0, 0, 0);
+INSERT INTO variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('buyvariable', 0, 0, 0, 0, 0, 0);
+INSERT INTO variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('sellvariable', 0, 0, 0, 0, 0, 0);
+INSERT INTO variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('profitfactor', 2, 4, 0, 0, 0, 0);
 
 -- End of export

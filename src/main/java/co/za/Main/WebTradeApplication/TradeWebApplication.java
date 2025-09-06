@@ -131,7 +131,7 @@ public class TradeWebApplication {
                     
                     try (TradeVariableDatabase db = new TradeVariableDatabase()) {
                         // Create enhanced query implementation with custom parameters
-                        EnhancedTradeQueryImplementation queryImpl = new EnhancedTradeQueryImplementation(
+                        TradeQueryImplementation queryImpl = new TradeQueryImplementation(
                             basedOnExecution, spread, rateKA, ratePN);
                         queryImpl.populateTable(db);
                         
