@@ -9,12 +9,12 @@ import java.math.BigDecimal;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-public class WebApplication {
+public class WebServerApplication {
     
     private HttpServer server;
     private String filename = "trade-index.html";
     
-    public WebApplication() throws IOException {
+    public WebServerApplication() throws IOException {
         setupServer();
     }
     

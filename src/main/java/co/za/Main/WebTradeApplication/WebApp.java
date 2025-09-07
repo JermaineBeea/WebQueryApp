@@ -5,7 +5,7 @@ import java.io.IOException;
 public class WebApp {
     public static void main(String[] args) {
         try {
-            WebApplication app = new WebApplication();
+            WebServerApplication app = new WebServerApplication();
             
             // Add shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
