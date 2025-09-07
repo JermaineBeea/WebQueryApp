@@ -4,12 +4,12 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import co.za.Main.TradeModules.TradeFunction;
 
-public class TradeQueryImplementation {
+public class WebQueryImplementation {
     
     private boolean basedOnExecution;
     private TradeFunction tradeFunction;
     
-    public TradeQueryImplementation(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
+    public WebQueryImplementation(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
         this.basedOnExecution = basedOnExecution;
         this.tradeFunction = new TradeFunction(basedOnExecution, spread, rateKA, ratePN);
         
@@ -20,12 +20,15 @@ public class TradeQueryImplementation {
         System.out.println("Rate PN: " + ratePN);
     }
     
-    public void populateTable(TradeVariableDatabase db) throws SQLException {
+    public void populateTable(WebAppDataBase db) throws SQLException {
         System.out.println("=== Running Enhanced Trade Calculations ===");
         System.out.println("Execution Mode: " + (basedOnExecution ? "EXECUTION-BASED" : "STANDARD"));
         
         try {
-            // Get all min/max values from database
+            // FIXED: Refresh input values first to get current state from web interface
+            db.refreshInputValues();
+            
+            // Get all min/max values from database (these are the current input values from the web interface)
             BigDecimal tradeProfitMax = db.getValueFromColumn("tradeprofit", "maximum");
             BigDecimal tradeProfitMin = db.getValueFromColumn("tradeprofit", "minimum");
             BigDecimal profitFactorMin = db.getValueFromColumn("profitfactor", "minimum");
@@ -37,11 +40,12 @@ public class TradeQueryImplementation {
             BigDecimal sellVariableMin = db.getValueFromColumn("sellvariable", "minimum");
             BigDecimal sellVariableMax = db.getValueFromColumn("sellvariable", "maximum");
 
-            System.out.println("Input Values Retrieved:");
+            System.out.println("Current Input Values Retrieved:");
             System.out.println("- Trade Profit: " + tradeProfitMin + " to " + tradeProfitMax);
             System.out.println("- Trade Amount: " + tradeAmountMin + " to " + tradeAmountMax);
             System.out.println("- Buy Variable: " + buyVariableMin + " to " + buyVariableMax);
             System.out.println("- Sell Variable: " + sellVariableMin + " to " + sellVariableMax);
+            System.out.println("- Profit Factor: " + profitFactorMin + " to " + profitFactorMax);
 
             // Calculate and update tradeprofit
             calculateTradeProfitValues(db, tradeAmountMin, tradeAmountMax, 
@@ -82,7 +86,7 @@ public class TradeQueryImplementation {
         }
     }
     
-    private void calculateTradeProfitValues(TradeVariableDatabase db, 
+    private void calculateTradeProfitValues(WebAppDataBase db, 
                                           BigDecimal tradeAmountMin, BigDecimal tradeAmountMax,
                                           BigDecimal buyVariableMin, BigDecimal buyVariableMax,
                                           BigDecimal sellVariableMin, BigDecimal sellVariableMax) throws SQLException {
@@ -110,7 +114,7 @@ public class TradeQueryImplementation {
         }
     }
     
-    private void calculateProfitFactorValues(TradeVariableDatabase db,
+    private void calculateProfitFactorValues(WebAppDataBase db,
                                            BigDecimal tradeProfitMin, BigDecimal tradeProfitMax,
                                            BigDecimal tradeAmountMin, BigDecimal tradeAmountMax,
                                            BigDecimal profitFactorMin, BigDecimal profitFactorMax) throws SQLException {
@@ -134,7 +138,7 @@ public class TradeQueryImplementation {
         }
     }
     
-    private void calculateTradeAmountValues(TradeVariableDatabase db,
+    private void calculateTradeAmountValues(WebAppDataBase db,
                                           BigDecimal tradeProfitMin, BigDecimal tradeProfitMax,
                                           BigDecimal buyVariableMin, BigDecimal buyVariableMax,
                                           BigDecimal sellVariableMin, BigDecimal sellVariableMax,
@@ -164,7 +168,7 @@ public class TradeQueryImplementation {
         }
     }
     
-    private void calculateSellVariableValues(TradeVariableDatabase db,
+    private void calculateSellVariableValues(WebAppDataBase db,
                                            BigDecimal tradeProfitMin, BigDecimal tradeProfitMax,
                                            BigDecimal tradeAmountMin, BigDecimal tradeAmountMax,
                                            BigDecimal buyVariableMin, BigDecimal buyVariableMax,
@@ -194,7 +198,7 @@ public class TradeQueryImplementation {
         }
     }
     
-    private void calculateBuyVariableValues(TradeVariableDatabase db,
+    private void calculateBuyVariableValues(WebAppDataBase db,
                                           BigDecimal tradeProfitMin, BigDecimal tradeProfitMax,
                                           BigDecimal tradeAmountMin, BigDecimal tradeAmountMax,
                                           BigDecimal sellVariableMin, BigDecimal sellVariableMax,

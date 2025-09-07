@@ -1,15 +1,18 @@
-package  co.za.Main.WebTradeApplication;
+package co.za.Main.WebTradeApplication;
 
 import java.math.BigDecimal;
 import java.sql.*;
 
-public class TradeVariableDatabase implements AutoCloseable {
+import static co.za.Main.WebTradeApplication.WebVariableDefaults.*;
+
+public class WebAppDataBase implements AutoCloseable {
 
     private Connection connection;
-    private String dataBaseName = "trade_variables.db";
-    private String tableName = "trade_variables";
+    private String dataBaseName = "WebAppDataBase.db";
+    private String tableName = "WebAppDataBase";
+    private String FILENAME = "WebAppDataBase";
 
-    public TradeVariableDatabase() throws SQLException {
+    public WebAppDataBase() throws SQLException {
         connection = DriverManager.getConnection("jdbc:sqlite:" + dataBaseName);
         createTable();
     }
@@ -28,34 +31,38 @@ public class TradeVariableDatabase implements AutoCloseable {
             """, tableName);
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
-            populateTable();
+            ensureTablePopulated(); // Changed method name for clarity
         }
     }
 
-    private void populateTable() throws SQLException {
+    private void ensureTablePopulated() throws SQLException {
         // Check if table is already populated
         try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
             if (rs.next() && rs.getInt(1) > 0) {
-                return; // Table already has data
+                System.out.println("Table already populated with " + rs.getInt(1) + " variables");
+                return; // Table already has data, don't repopulate
             }
         }
         
+        System.out.println("Populating table with realistic default values...");
         try (Statement stmt = connection.createStatement()) {
-            String[] variables = {
-                "tradeprofit",
-                "profitfactor", 
-                "tradeamount",
-                "buyvariable",
-                "sellvariable"
-            };
+            // CHANGE: Use meaningful defaults instead of all zeros
+            insertVariableWithDefaults(stmt, "tradeprofit", DEFAULT_TRADE_PROFIT_MIN , DEFAULT_TRADE_PROFIT_MAX);
+            insertVariableWithDefaults(stmt, "profitfactor", DEFAULT_PROFIT_FACTOR_MIN, DEFAULT_PROFIT_FACTOR_MAX);
+            insertVariableWithDefaults(stmt, "tradeamount", DEFAULT_TRADE_AMOUNT_MIN, DEFAULT_TRADE_AMOUNT_MAX);
+            insertVariableWithDefaults(stmt, "buyvariable", DEFAULT_BUY_VARIABLE_MIN, DEFAULT_BUY_VARIABLE_MAX);
+            insertVariableWithDefaults(stmt, "sellvariable", DEFAULT_SELL_VARIABLE_MIN, DEFAULT_SELL_VARIABLE_MAX);
             
-            for (String variable : variables) {
-                stmt.execute(String.format(
-                    "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', 0, 0, 0, 0, 0, 0)",
-                    tableName, variable));
-            }
+            System.out.println("Initial population completed with realistic defaults.");
         }
+    }
+
+    private void insertVariableWithDefaults(Statement stmt, String variable, String min, String max) throws SQLException {
+        stmt.execute(String.format(
+            "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, 0, 0, 0, 0)",
+            tableName, variable, min, max));
+        System.out.println("Set defaults for " + variable + ": " + min + " to " + max);
     }
 
     public BigDecimal getValueFromColumn(String variable, String columnName) throws SQLException {
@@ -80,6 +87,7 @@ public class TradeVariableDatabase implements AutoCloseable {
             if (rowsAffected == 0) {
                 throw new SQLException("No rows updated for variable: " + variable);
             }
+            System.out.println("Updated " + variable + "." + columnName + " = " + value.toPlainString());
         }
     }
 
@@ -92,23 +100,44 @@ public class TradeVariableDatabase implements AutoCloseable {
             pstmt.setBigDecimal(3, returnMin);
             pstmt.setBigDecimal(4, returnMax);
             pstmt.setString(5, variable);
-            pstmt.executeUpdate();
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Updated calculations for " + variable + 
+                    " - factormin: " + factorMin.toPlainString() +
+                    ", factormax: " + factorMax.toPlainString());
+            }
+        }
+    }
+
+    // NEW: Method to refresh input values from the web interface
+    public void refreshInputValues() throws SQLException {
+        System.out.println("Refreshing input values from current database state...");
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT variable, minimum, maximum FROM " + tableName)) {
+            
+            while (rs.next()) {
+                String var = rs.getString("variable");
+                BigDecimal min = rs.getBigDecimal("minimum");
+                BigDecimal max = rs.getBigDecimal("maximum");
+                System.out.println("Current " + var + ": min=" + min.toPlainString() + 
+                                 ", max=" + max.toPlainString());
+            }
         }
     }
 
     public void exportToSQL() throws SQLException {
-        String fileName = "trade_variables.sql";
+        String fileName =  FILENAME + ".sql";
         
         try (java.io.FileWriter writer = new java.io.FileWriter(fileName);
              java.io.PrintWriter printWriter = new java.io.PrintWriter(writer)) {
             
-            printWriter.println("-- Trade Variables Database Export");
+            printWriter.println("-- " + tableName + " Export");
             printWriter.println("-- Generated on: " + new java.util.Date());
             printWriter.println();
             
-            printWriter.println("DROP TABLE IF EXISTS trade_variables;");
+            printWriter.println("DROP TABLE IF EXISTS " + tableName + ";");
             printWriter.println();
-            printWriter.println("CREATE TABLE trade_variables (");
+            printWriter.println("CREATE TABLE " + tableName + " (");
             printWriter.println("    variable VARCHAR(50) DEFAULT '0',");
             printWriter.println("    maximum DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    minimum DECIMAL(20,8) DEFAULT 0,");
@@ -126,7 +155,8 @@ public class TradeVariableDatabase implements AutoCloseable {
                 printWriter.println("-- Insert data");
                 while (rs.next()) {
                     printWriter.printf(
-                        "INSERT INTO trade_variables (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s, %s, %s);%n",
+                        "INSERT INTO %s (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s, %s, %s);%n",
+                        tableName,
                         rs.getString("variable"),
                         rs.getBigDecimal("maximum").toPlainString(),
                         rs.getBigDecimal("minimum").toPlainString(),

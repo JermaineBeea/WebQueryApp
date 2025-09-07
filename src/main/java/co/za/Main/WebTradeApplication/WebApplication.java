@@ -9,12 +9,12 @@ import java.math.BigDecimal;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-public class TradeWebApplication {
+public class WebApplication {
     
     private HttpServer server;
     private String filename = "trade-index.html";
     
-    public TradeWebApplication() throws IOException {
+    public WebApplication() throws IOException {
         setupServer();
     }
     
@@ -59,7 +59,7 @@ public class TradeWebApplication {
             }
             
             if ("GET".equals(exchange.getRequestMethod())) {
-                try (TradeVariableDatabase db = new TradeVariableDatabase()) {
+                try (WebAppDataBase db = new WebAppDataBase()) {
                     String json = buildDataJson(db);
                     sendJsonResponse(exchange, json);
                 } catch (Exception e) {
@@ -89,7 +89,7 @@ public class TradeWebApplication {
                     String column = parseStringValue(body, "column");
                     BigDecimal value = new BigDecimal(parseStringValue(body, "value"));
                     
-                    try (TradeVariableDatabase db = new TradeVariableDatabase()) {
+                    try (WebAppDataBase db = new WebAppDataBase()) {
                         db.updateValue(variable, column, value);
                         sendJsonResponse(exchange, "{\"success\":true,\"message\":\"Value updated successfully\"}");
                     }
@@ -129,9 +129,9 @@ public class TradeWebApplication {
                     System.out.println("- Rate KA: " + rateKA);
                     System.out.println("- Rate PN: " + ratePN);
                     
-                    try (TradeVariableDatabase db = new TradeVariableDatabase()) {
+                    try (WebAppDataBase db = new WebAppDataBase()) {
                         // Create enhanced query implementation with custom parameters
-                        TradeQueryImplementation queryImpl = new TradeQueryImplementation(
+                        WebQueryImplementation queryImpl = new WebQueryImplementation(
                             basedOnExecution, spread, rateKA, ratePN);
                         queryImpl.populateTable(db);
                         
@@ -207,7 +207,7 @@ public class TradeWebApplication {
         exchange.getResponseBody().close();
     }
     
-    private String buildDataJson(TradeVariableDatabase db) throws Exception {
+    private String buildDataJson(WebAppDataBase db) throws Exception {
         String[] variables = {"tradeprofit", "profitfactor", "tradeamount", "buyvariable", "sellvariable"};
         StringBuilder json = new StringBuilder("{\"data\":[");
         

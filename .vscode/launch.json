@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "WebApp",
+            "request": "launch",
+            "mainClass": "co.za.Main.WebTradeApplication.WebApp",
+            "projectName": "exercise"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"

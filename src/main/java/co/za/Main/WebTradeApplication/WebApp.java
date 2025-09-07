@@ -2,10 +2,10 @@ package  co.za.Main.WebTradeApplication ;
 
 import java.io.IOException;
 
-public class TradeApp {
+public class WebApp {
     public static void main(String[] args) {
         try {
-            TradeWebApplication app = new TradeWebApplication();
+            WebApplication app = new WebApplication();
             
             // Add shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {

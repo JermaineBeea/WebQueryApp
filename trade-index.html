@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Trade Web Application (Defaults at Top)</title>
+  <title>Trade Web Application</title>
   <style>
     body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;margin:0;padding:20px}
     .container{max-width:1000px;margin:auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:20px}
@@ -32,25 +32,32 @@
     .slider:before{content:"";position:absolute;height:22px;width:22px;left:3px;top:3px;background:#fff;transition:.3s;border-radius:50%}
     .toggle-switch input:checked + .slider{background:#667eea}
     .toggle-switch input:checked + .slider:before{transform:translateX(24px)}
+
+    /* Formating */
+        td:first-child {
+        text-transform: capitalize;
+        letter-spacing: 0.5px; /* Makes it slightly more readable */
+    }
   </style>
+  
 </head>
 <body>
   <script>
-    // All default values in one place
-    const DEFAULTS = {
-      spread: 0.01,
-      rateKA: 17.7055,
-      ratePN: 1,
-      basedOnExecution: true,
-      table: {
-        tradeprofit: 1,
-        profitfactor: 1 ,
-        returnmin: 2,
-        returnmax: 2,
-        factormin: 3,
-        factormax: 3
-      }
-    };
+    // Simplified defaults - only for input parameters
+      const DEFAULTS = {
+        spread: 0.01,
+        rateKA: 17.7055,
+        ratePN: 1,
+        basedOnExecution: true
+      };
+
+      const DEFAULT_VALUES = {
+        'tradeprofit': { min: -103.00, max: 500.00 },
+        'profitfactor': { min: -0.05, max: 0.10 },
+        'tradeamount': { min: 1000.00, max: 50000.00 },
+        'buyvariable': { min: 16.50, max: 18.50 },
+        'sellvariable': { min: 16.40, max: 18.60 }
+      };
   </script>
 
   <div class="container">
@@ -78,7 +85,7 @@
     <!-- Actions row: buttons + toggle -->
     <div class="actions">
       <button onclick="runQuery()">Run Calculations</button>
-      <button onclick="loadData()">Refresh Data</button>
+      <button onclick="revertToDefaults()" style="background:#059669;">Revert to Defaults</button>
 
       <div class="toggle-container" title="Toggle calculation mode">
         <span style="font-weight:600;color:#334155">Based on Execution</span>
@@ -120,30 +127,65 @@
 
     document.addEventListener('DOMContentLoaded', loadData);
 
+    async function revertToDefaults() {
+      showLoading(true);
+      try {
+        let successCount = 0;
+        
+        // Update each variable with default values
+        for (const [variable, values] of Object.entries(DEFAULT_VALUES)) {
+          // Update minimum
+          await fetch('/api/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              variable: variable, 
+              column: 'minimum', 
+              value: values.min.toString() 
+            })
+          });
+          
+          // Update maximum
+          await fetch('/api/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              variable: variable, 
+              column: 'maximum', 
+              value: values.max.toString() 
+            })
+          });
+          
+          successCount++;
+        }
+        
+        // Reload the table to show new default values
+        await loadData();
+        showStatus(`Reverted ${successCount} variables to default values!`, 'success');
+        
+      } catch (error) {
+        showStatus('Error reverting to defaults: ' + error.message, 'error');
+      }
+      showLoading(false);
+  }
+
     async function loadData() {
       showLoading(true);
       try {
         const response = await fetch('/api/data');
         const result = await response.json();
-        if (result.data) {
+        if (result.data && result.data.length > 0) {
           currentData = result.data;
           populateTable(result.data);
           showStatus('Data loaded successfully', 'success');
         } else {
-          // Use table defaults if no data
-          populateTable([{
-            variable: 'tradeprofit',
-            minimum: DEFAULTS.table.tradeprofit,
-            maximum: DEFAULTS.table.tradeprofit,
-            factormin: DEFAULTS.table.factormin,
-            factormax: DEFAULTS.table.factormax,
-            returnmin: DEFAULTS.table.returnmin,
-            returnmax: DEFAULTS.table.returnmax
-          }]);
-          showStatus('No data received, using defaults', 'error');
+          showStatus('No data available - please run calculations first', 'error');
+          // Create empty table structure
+          populateTable([]);
         }
       } catch (error) {
         showStatus('Error loading data: ' + error.message, 'error');
+        populateTable([]); // Show empty table
       }
       showLoading(false);
     }
@@ -151,6 +193,15 @@
     function populateTable(data) {
       const tbody = document.getElementById('dataTable');
       tbody.innerHTML = '';
+      
+      if (data.length === 0) {
+        // Show empty message
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="7" style="text-align:center;color:#666;font-style:italic">No data available - run calculations to populate table</td>';
+        tbody.appendChild(row);
+        return;
+      }
+      
       data.forEach(item => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -194,6 +245,9 @@
         ratePN: parseFloat(document.getElementById('ratePN').value) || DEFAULTS.ratePN,
         basedOnExecution: document.getElementById('basedOnExecution').checked ?? DEFAULTS.basedOnExecution
       };
+      
+      console.log('Running query with parameters:', params);
+      
       try {
         const response = await fetch('/api/query', {
           method: 'POST',
