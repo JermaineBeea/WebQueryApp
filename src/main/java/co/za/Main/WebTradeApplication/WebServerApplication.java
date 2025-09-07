@@ -26,6 +26,7 @@ public class WebServerApplication {
         server.createContext("/api/data", new DataHandler());
         server.createContext("/api/update", new UpdateHandler());
         server.createContext("/api/query", new QueryHandler());
+        server.createContext("/api/reset", new ResetHandler()); // NEW: Reset endpoint
         
         server.start();
         System.out.println("Trade Web Server running at: http://localhost:8080");
@@ -96,6 +97,45 @@ public class WebServerApplication {
                     
                 } catch (Exception e) {
                     sendErrorResponse(exchange, "Error updating value: " + e.getMessage());
+                }
+            }
+        }
+    }
+    
+    // NEW: Reset Handler
+    class ResetHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            addCorsHeaders(exchange);
+            
+            if ("OPTIONS".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(200, 0);
+                exchange.getResponseBody().close();
+                return;
+            }
+            
+            if ("POST".equals(exchange.getRequestMethod())) {
+                try {
+                    String body = readBody(exchange);
+                    String resetType = parseStringValue(body, "resetType");
+                    
+                    try (WebAppDataBase db = new WebAppDataBase()) {
+                        switch (resetType) {
+                            case "zero":
+                                db.resetAllValuesToZero();
+                                sendJsonResponse(exchange, "{\"success\":true,\"message\":\"All values reset to zero\"}");
+                                break;
+                            case "input":
+                                db.resetInputValuesToZero();
+                                sendJsonResponse(exchange, "{\"success\":true,\"message\":\"Input values reset to zero\"}");
+                                break;
+                            default:
+                                sendErrorResponse(exchange, "Invalid reset type: " + resetType);
+                        }
+                    }
+                    
+                } catch (Exception e) {
+                    sendErrorResponse(exchange, "Error resetting values: " + e.getMessage());
                 }
             }
         }
@@ -240,33 +280,33 @@ public class WebServerApplication {
             return new String(java.nio.file.Files.readAllBytes(
                 java.nio.file.Paths.get(filename)));
         } catch (Exception e) {
-            System.err.println("Could not find," + filename + "using fallback HTML");
+            System.err.println("Could not find " + filename + ", using fallback HTML");
             return getFallbackHtml();
         }
     }
     
-private String getFallbackHtml() {
-    return """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Trade Application</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; }
-                .error { color: red; background: #ffe6e6; padding: 20px; border-radius: 5px; }
-            </style>
-        </head>
-        <body>
-            <h1>Trade Web Application</h1>
-            <div class="error">
-                <h3>Missing Interface File</h3>
-                <p>Please save the enhanced HTML interface as <strong>%s</strong> in your project root directory.</p>
-                <p>The interface includes controls for spread, rateKA, ratePN, and the basedOnExecution toggle.</p>
-            </div>
-        </body>
-        </html>
-        """.formatted(filename); // Java 15+ way
-}
+    private String getFallbackHtml() {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Trade Application</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; }
+                    .error { color: red; background: #ffe6e6; padding: 20px; border-radius: 5px; }
+                </style>
+            </head>
+            <body>
+                <h1>Trade Web Application</h1>
+                <div class="error">
+                    <h3>Missing Interface File</h3>
+                    <p>Please save the enhanced HTML interface as <strong>%s</strong> in your project root directory.</p>
+                    <p>The interface includes controls for spread, rateKA, ratePN, and the basedOnExecution toggle.</p>
+                </div>
+            </body>
+            </html>
+            """.formatted(filename);
+    }
 
     public void stop() {
         if (server != null) server.stop(0);

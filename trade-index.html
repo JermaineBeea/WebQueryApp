@@ -15,6 +15,10 @@
     .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
     button{padding:8px 16px;border:none;border-radius:6px;background:#667eea;color:#fff;font-weight:600;cursor:pointer}
     button:hover{background:#5567c9}
+    button.green{background:#059669}
+    button.green:hover{background:#047857}
+    button.red{background:#dc2626}
+    button.red:hover{background:#b91c1c}
     table{width:100%;border-collapse:collapse;margin-top:14px}
     th,td{padding:10px;border:1px solid #e5e7eb;text-align:left;font-size:.92rem}
     th{background:#667eea;color:#fff}
@@ -33,37 +37,40 @@
     .toggle-switch input:checked + .slider{background:#667eea}
     .toggle-switch input:checked + .slider:before{transform:translateX(24px)}
 
-    /* Formating */
-        td:first-child {
+    /* Formatting */
+    td:first-child {
         text-transform: capitalize;
-        letter-spacing: 0.5px; /* Makes it slightly more readable */
+        letter-spacing: 0.5px;
     }
   </style>
-  
 </head>
 <body>
   <script>
-    // Simplified defaults - only for input parameters
-      const DEFAULTS = {
+    // Application configuration - starts with zeros, these are just for the "defaults" button
+    const APP_DEFAULTS = {
         spread: 0.01,
         rateKA: 17.7055,
         ratePN: 1,
         basedOnExecution: true
-      };
+    };
 
-      const DEFAULT_VALUES = {
+    const PROMPT_TO_RESET_TO_ZERO = true;
+    const PROMPT_USER_ON_LOAD_EXAMPLES = true;
+
+    // Example values for the "Revert to Defaults" button (testing/demo purposes)
+    const EXAMPLE_VALUES = {
         'tradeprofit': { min: -103.00, max: 500.00 },
         'profitfactor': { min: -0.05, max: 0.10 },
         'tradeamount': { min: 1000.00, max: 50000.00 },
         'buyvariable': { min: 16.50, max: 18.50 },
         'sellvariable': { min: 16.40, max: 18.60 }
-      };
+    };
   </script>
 
   <div class="container">
     <div class="header">
       <h1>Trade Web Application</h1>
-      <p>Simple Trading Calculations with Real-time Updates</p>
+      <p>Trading Calculations with Real-time Updates - Starts with Zero Values</p>
     </div>
 
     <!-- Top row: inputs -->
@@ -85,7 +92,8 @@
     <!-- Actions row: buttons + toggle -->
     <div class="actions">
       <button onclick="runQuery()">Run Calculations</button>
-      <button onclick="revertToDefaults()" style="background:#059669;">Revert to Defaults</button>
+      <button onclick="loadExampleDefaults()" class="green">Load Example Values</button>
+      <button onclick="resetToZero()" class="red">Reset to Zero</button>
 
       <div class="toggle-container" title="Toggle calculation mode">
         <span style="font-weight:600;color:#334155">Based on Execution</span>
@@ -96,7 +104,7 @@
       </div>
     </div>
 
-    <div class="loading" id="loading">Processing calculations...</div>
+    <div class="loading" id="loading">Processing...</div>
 
     <table>
       <thead>
@@ -117,23 +125,27 @@
   </div>
 
   <script>
-    // Set input and toggle defaults from DEFAULTS
-    document.getElementById('spread').value = DEFAULTS.spread;
-    document.getElementById('rateKA').value = DEFAULTS.rateKA;
-    document.getElementById('ratePN').value = DEFAULTS.ratePN;
-    document.getElementById('basedOnExecution').checked = DEFAULTS.basedOnExecution;
+    // Set application defaults for calculation parameters
+    document.getElementById('spread').value = APP_DEFAULTS.spread;
+    document.getElementById('rateKA').value = APP_DEFAULTS.rateKA;
+    document.getElementById('ratePN').value = APP_DEFAULTS.ratePN;
+    document.getElementById('basedOnExecution').checked = APP_DEFAULTS.basedOnExecution;
 
     let currentData = [];
 
     document.addEventListener('DOMContentLoaded', loadData);
 
-    async function revertToDefaults() {
+    // Load example values for testing/demo (green button)
+    async function loadExampleDefaults() {
+      if (PROMPT_USER_ON_LOAD_EXAMPLES && !confirm('This will overwrite current values with examples. Continue?')) {
+        return;
+      }
       showLoading(true);
       try {
         let successCount = 0;
         
-        // Update each variable with default values
-        for (const [variable, values] of Object.entries(DEFAULT_VALUES)) {
+        // Update each variable with example values
+        for (const [variable, values] of Object.entries(EXAMPLE_VALUES)) {
           // Update minimum
           await fetch('/api/update', {
             method: 'POST',
@@ -159,15 +171,43 @@
           successCount++;
         }
         
-        // Reload the table to show new default values
+        // Reload the table to show new example values
         await loadData();
-        showStatus(`Reverted ${successCount} variables to default values!`, 'success');
+        showStatus(`Loaded example values for ${successCount} variables!`, 'success');
         
       } catch (error) {
-        showStatus('Error reverting to defaults: ' + error.message, 'error');
+        showStatus('Error loading example values: ' + error.message, 'error');
       }
       showLoading(false);
-  }
+    }
+
+    // Reset all values to zero (red button)
+    async function resetToZero() {
+        if (PROMPT_TO_RESET_TO_ZERO && !confirm('This will reset all values to zero. Continue?')) {
+        return;
+      }
+      
+      showLoading(true);
+      try {
+        const response = await fetch('/api/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resetType: 'zero' })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          await loadData(); // Reload table
+          showStatus('All values reset to zero successfully!', 'success');
+        } else {
+          showStatus('Reset failed: ' + (result.error || 'Unknown error'), 'error');
+        }
+        
+      } catch (error) {
+        showStatus('Error resetting values: ' + error.message, 'error');
+      }
+      showLoading(false);
+    }
 
     async function loadData() {
       showLoading(true);
@@ -179,7 +219,7 @@
           populateTable(result.data);
           showStatus('Data loaded successfully', 'success');
         } else {
-          showStatus('No data available - please run calculations first', 'error');
+          showStatus('No data available - application starts with zero values', 'success');
           // Create empty table structure
           populateTable([]);
         }
@@ -197,7 +237,7 @@
       if (data.length === 0) {
         // Show empty message
         const row = document.createElement('tr');
-        row.innerHTML = '<td colspan="7" style="text-align:center;color:#666;font-style:italic">No data available - run calculations to populate table</td>';
+        row.innerHTML = '<td colspan="7" style="text-align:center;color:#666;font-style:italic">Application starts with zero values - load examples or run calculations</td>';
         tbody.appendChild(row);
         return;
       }
@@ -240,13 +280,13 @@
     async function runQuery() {
       showLoading(true);
       const params = {
-        spread: parseFloat(document.getElementById('spread').value) || DEFAULTS.spread,
-        rateKA: parseFloat(document.getElementById('rateKA').value) || DEFAULTS.rateKA,
-        ratePN: parseFloat(document.getElementById('ratePN').value) || DEFAULTS.ratePN,
-        basedOnExecution: document.getElementById('basedOnExecution').checked ?? DEFAULTS.basedOnExecution
+        spread: parseFloat(document.getElementById('spread').value) || APP_DEFAULTS.spread,
+        rateKA: parseFloat(document.getElementById('rateKA').value) || APP_DEFAULTS.rateKA,
+        ratePN: parseFloat(document.getElementById('ratePN').value) || APP_DEFAULTS.ratePN,
+        basedOnExecution: document.getElementById('basedOnExecution').checked ?? APP_DEFAULTS.basedOnExecution
       };
       
-      console.log('Running query with parameters:', params);
+      console.log('Running calculations with parameters:', params);
       
       try {
         const response = await fetch('/api/query', {
@@ -263,7 +303,7 @@
           showStatus('Query failed: ' + (result.error || 'Unknown error'), 'error');
         }
       } catch (error) {
-        showStatus('Error running query: ' + error.message, 'error');
+        showStatus('Error running calculations: ' + error.message, 'error');
       }
       showLoading(false);
     }

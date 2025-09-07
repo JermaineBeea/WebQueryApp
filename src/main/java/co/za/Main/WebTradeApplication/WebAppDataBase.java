@@ -2,7 +2,7 @@ package co.za.Main.WebTradeApplication;
 
 import java.math.BigDecimal;
 import java.sql.*;
-
+import java.io.File;
 
 public class WebAppDataBase implements AutoCloseable {
 
@@ -12,8 +12,37 @@ public class WebAppDataBase implements AutoCloseable {
     private String FILENAME = "WebAppDataBase";
 
     public WebAppDataBase() throws SQLException {
+        this(false); // Default: don't reset on startup
+    }
+
+    public WebAppDataBase(boolean resetOnStartup) throws SQLException {
+        if (resetOnStartup) {
+            deleteExistingFiles();
+        }
         connection = DriverManager.getConnection("jdbc:sqlite:" + dataBaseName);
         createTable();
+    }
+
+    /**
+     * Delete existing database and SQL files
+     */
+    public void deleteExistingFiles() {
+        try {
+            File dbFile = new File(dataBaseName);
+            File sqlFile = new File(FILENAME + ".sql");
+            
+            if (dbFile.exists()) {
+                boolean deleted = dbFile.delete();
+                System.out.println("Database file " + (deleted ? "deleted" : "delete failed"));
+            }
+            
+            if (sqlFile.exists()) {
+                boolean deleted = sqlFile.delete();
+                System.out.println("SQL file " + (deleted ? "deleted" : "delete failed"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error deleting files: " + e.getMessage());
+        }
     }
 
     public void createTable() throws SQLException {
@@ -28,39 +57,75 @@ public class WebAppDataBase implements AutoCloseable {
                 returnmax DECIMAL(20,8) DEFAULT 0
             )
             """, tableName);
-        try (Statement stmt = connection.createStatement()) {
-            stmt.execute(sql);
-            populateTable(); // Changed method name for clarity
-        }
-    }
-
-    private void populateTable() throws SQLException {
-        // Check if table is already populated
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
-            if (rs.next() && rs.getInt(1) > 0) {
-                return; // Table already has data
-            }
-        }
         
         try (Statement stmt = connection.createStatement()) {
-            String[] variables = {
-                "tradeprofit",
-                "profitfactor", 
-                "tradeamount",
-                "buyvariable",
-                "sellvariable"
-            };
+            stmt.execute(sql);
+            // Only populate if table is completely empty
+            populateTableIfEmpty();
+        }
+    }
+
+    /**
+     * Only populate if table is completely empty - always with zeros
+     */
+    private void populateTableIfEmpty() throws SQLException {
+        // Check if table is empty
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
             
-            for (String variable : variables) {
-                stmt.execute(String.format(
-                    "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', 0, 0, 0, 0, 0, 0)",
-                    tableName, variable));
+            if (rs.next() && rs.getInt(1) == 0) {
+                // Table is empty - populate with zero values
+                System.out.println("Table is empty - populating with zero values...");
+                populateWithZeros();
+            } else {
+                System.out.println("Table already contains data - keeping existing values");
             }
         }
     }
 
+    /**
+     * Populate table with all zeros (clean slate)
+     */
+    private void populateWithZeros() throws SQLException {
+        String[] variables = {"tradeprofit", "profitfactor", "tradeamount", "buyvariable", "sellvariable"};
+        
+        String insertSQL = "INSERT INTO " + tableName + 
+            " (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES (?, 0, 0, 0, 0, 0, 0)";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
+            for (String variable : variables) {
+                pstmt.setString(1, variable);
+                pstmt.executeUpdate();
+                System.out.println("Initialized " + variable + " with all zero values");
+            }
+        }
+    }
 
+    /**
+     * Reset all input values (min/max) to zero, keep calculated values
+     */
+    public void resetInputValuesToZero() throws SQLException {
+        System.out.println("Resetting input values (min/max) to zero...");
+        
+        String sql = "UPDATE " + tableName + " SET minimum = 0, maximum = 0";
+        try (Statement stmt = connection.createStatement()) {
+            int rowsAffected = stmt.executeUpdate(sql);
+            System.out.println("Reset " + rowsAffected + " input values to zero.");
+        }
+    }
+
+    /**
+     * Reset ALL values to zero - complete reset
+     */
+    public void resetAllValuesToZero() throws SQLException {
+        System.out.println("Resetting ALL values to zero...");
+        
+        String sql = "UPDATE " + tableName + " SET minimum = 0, maximum = 0, factormin = 0, factormax = 0, returnmin = 0, returnmax = 0";
+        try (Statement stmt = connection.createStatement()) {
+            int rowsAffected = stmt.executeUpdate(sql);
+            System.out.println("Reset " + rowsAffected + " rows - all values set to zero.");
+        }
+    }
 
     public BigDecimal getValueFromColumn(String variable, String columnName) throws SQLException {
         String sql = String.format("SELECT %s FROM %s WHERE variable = ?", columnName, tableName);
