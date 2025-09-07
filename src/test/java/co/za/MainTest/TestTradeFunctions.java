@@ -26,8 +26,14 @@ public class TestTradeFunctions {
     BigDecimal sellVariable = new BigDecimal("17.6967");
     BigDecimal buyVariable = new BigDecimal("17.7055");
 
-    TradeFunction tradeFunction = new TradeFunction(true, spread,  rateKA, ratePN);
+    TradeFunction tradeFunction = new TradeFunction(spread, rateKA, ratePN);
     BigDecimal TOLERANCE = new BigDecimal("0.01");
+
+    @BeforeEach
+    public void setUp() {
+        // Set to execution-based mode (basedOnMarketRate = false) for consistent test results
+        tradeFunction.setBasedOnMarketRate(false);
+    }
 
     @Test
     public void testReturnProfit() {
@@ -159,6 +165,18 @@ public class TestTradeFunctions {
 
         logger.info("Expected Factor Buy Variable: " + buyVariable);
         logger.info("Actual Factor Buy Variable: " + actualFactorBuyVariable);
+    }
+
+    @Test
+    public void testMarketRateMode() {
+        // Test that the setter works
+        tradeFunction.setBasedOnMarketRate(true);
+        assertTrue(tradeFunction.isBasedOnMarketRate(), "Should be in market rate mode");
+
+        tradeFunction.setBasedOnMarketRate(false);
+        assertFalse(tradeFunction.isBasedOnMarketRate(), "Should be in execution rate mode");
+        
+        logger.info("Market rate mode toggle test passed");
     }
 
 }

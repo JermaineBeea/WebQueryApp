@@ -11,22 +11,21 @@ public class ConsoleImplementation {
 
     public static void main(String[] args) {
         // Initialize with example trading parameters
-        boolean basedOnExecution = true;
         BigDecimal spread = new BigDecimal("0.01");  // 0.1% spread
-        BigDecimal rateKA = new BigDecimal("17.7055");   // 95% rate
-        BigDecimal ratePN = new BigDecimal("1.0");   // 98% rate
+        BigDecimal rateKA = new BigDecimal("17.7055");   // Rate KA
+        BigDecimal ratePN = new BigDecimal("1.0");   // Rate PN
         
-        // Initialize database with trading parameters
-        db = new ConsoleDatabase(basedOnExecution, spread, rateKA, ratePN);
+        // Initialize database with trading parameters (defaults to execution-based)
+        db = new ConsoleDatabase(spread, rateKA, ratePN);
+        
+        // Optionally set to market-based calculation mode
+        // db.setBasedOnMarketRate(true);  // Uncomment to use market rates instead of execution rates
 
         
         try {
             System.out.println("=== Trade Query System Initialization ===");
             System.out.println("Database table created and populated with default values.");
-            
-            // // Update variable ranges in the database
-            // updateVariableRanges(tradeProfitMin, tradeProfitMax, tradeAmountMin, tradeAmountMax,
-            //                    buyVariableMin, buyVariableMax, sellVariableMin, sellVariableMax);
+            System.out.println("Calculation Mode: Execution-based (default)");
             
             System.out.println("Variables updated with min/max values:");
             printVariableRanges();
@@ -59,8 +58,6 @@ public class ConsoleImplementation {
         }
     }
 
-
-
     private static void printVariableRanges() {
         System.out.println("- Trade Profit: 100 - 1000");
         System.out.println("- Trade Amount: 5000 - 50000");
@@ -74,6 +71,7 @@ public class ConsoleImplementation {
         System.out.println("- 'query' to perform a database query");
         System.out.println("- 'show' to display all data");
         System.out.println("- 'export' to export data again");
+        System.out.println("- 'mode' to toggle calculation mode (market/execution)");
         System.out.println("- 'exit' to quit");
         
         while (true) {
@@ -100,12 +98,45 @@ public class ConsoleImplementation {
                         System.err.println("Error during export: " + e.getMessage());
                     }
                     break;
+                case "mode":
+                    toggleCalculationMode();
+                    break;
                 case "exit":
                     System.out.println("Exiting query interface...");
                     return;
                 default:
-                    System.out.println("Unknown command. Available: query, show, export, exit");
+                    System.out.println("Unknown command. Available: query, show, export, mode, exit");
             }
+        }
+    }
+
+    private static void toggleCalculationMode() {
+        try {
+            System.out.println("\nCalculation Mode Selection:");
+            System.out.println("1. Execution-based (default) - uses execution rates directly");
+            System.out.println("2. Market-based - applies spread adjustments to market rates");
+            System.out.print("Select mode (1 or 2): ");
+            
+            String input = scanner.nextLine().trim();
+            
+            if ("1".equals(input)) {
+                db.setBasedOnMarketRate(false);
+                System.out.println("Mode set to: Execution-based");
+            } else if ("2".equals(input)) {
+                db.setBasedOnMarketRate(true);
+                System.out.println("Mode set to: Market-based");
+            } else {
+                System.out.println("Invalid selection. Mode unchanged.");
+                return;
+            }
+            
+            // Recalculate with new mode
+            System.out.println("Recalculating with new mode...");
+            db.populateQueryVariables();
+            System.out.println("Calculations updated successfully.");
+            
+        } catch (Exception e) {
+            System.err.println("Error changing mode: " + e.getMessage());
         }
     }
 

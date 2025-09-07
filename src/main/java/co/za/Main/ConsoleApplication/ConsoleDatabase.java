@@ -29,13 +29,20 @@ public class ConsoleDatabase {
 
 
 
-    public ConsoleDatabase(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
+    public ConsoleDatabase(BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + dataBaseName);
             createTable();
-            tradeFunction = new TradeFunction(basedOnExecution, spread, rateKA, ratePN);
+            tradeFunction = new TradeFunction(spread, rateKA, ratePN);
+            // Default to execution-based (basedOnMarketRate = false)
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void setBasedOnMarketRate(boolean basedOnMarketRate) {
+        if (tradeFunction != null) {
+            tradeFunction.setBasedOnMarketRate(basedOnMarketRate);
         }
     }
 

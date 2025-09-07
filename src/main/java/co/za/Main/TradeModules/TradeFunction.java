@@ -8,25 +8,33 @@ public class TradeFunction {
     BigDecimal spread;
     BigDecimal rateKA;
     BigDecimal ratePN;
-    boolean basedOnExecution = true;
+    boolean basedOnMarketRate = false; // Default to false (execution-based)
 
-    // For basedOnExecution = true, sell/Buy variable is base on execution rate
-    // where sellExecutaion rate = marketSellRate - (spread/2)
+    // For basedOnMarketRate = false (default), sell/Buy variable is based on execution rate
+    // where sellExecution rate = marketSellRate - (spread/2)
     // and buyExecution rate = marketBuyRate + (spread/2)
-    // For basedOnExecution = false, sell/Buy variable is base on market rate
+    // For basedOnMarketRate = true, sell/Buy variable is based on market rate
 
-    public TradeFunction(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
+    public TradeFunction(BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
         this.spread = spread;
         this.rateKA = rateKA;
         this.ratePN = ratePN;
-        this.basedOnExecution = basedOnExecution;
+        this.basedOnMarketRate = false; // Default to execution-based
+    }
+
+    public void setBasedOnMarketRate(boolean basedOnMarketRate) {
+        this.basedOnMarketRate = basedOnMarketRate;
+    }
+
+    public boolean isBasedOnMarketRate() {
+        return basedOnMarketRate;
     }
 
     public BigDecimal returnProfit(BigDecimal tradeAmount, BigDecimal sellVariable, BigDecimal buyVariable) {
         if (buyVariable.compareTo(BigDecimal.ZERO) == 0) {
             throw new ArithmeticException("Buy variable cannot be zero");
         }
-        if(!basedOnExecution) {
+        if(basedOnMarketRate) {
             sellVariable = sellVariable.subtract(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP)); 
             buyVariable = buyVariable.add(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP));
         }
@@ -38,7 +46,7 @@ public class TradeFunction {
         if (buyVariable.compareTo(BigDecimal.ZERO) == 0) {
             throw new ArithmeticException("Buy variable cannot be zero");
         }
-        if(!basedOnExecution) {
+        if(basedOnMarketRate) {
             sellVariable = sellVariable.subtract(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP)); 
             buyVariable = buyVariable.add(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP));
         }
@@ -48,7 +56,7 @@ public class TradeFunction {
 
     public BigDecimal returnFactorBasedOnAmount(BigDecimal tradeProfit, BigDecimal tradeAmount) {
         if (tradeAmount.compareTo(BigDecimal.ZERO) == 0) {
-            throw new ArithmeticException("Buy variable cannot be zero");
+            throw new ArithmeticException("Trade amount cannot be zero");
         }
         BigDecimal ratio = tradeProfit.divide(tradeAmount.multiply(rateKA).multiply(ratePN), 10, RoundingMode.HALF_UP);
         return ratio;
@@ -58,7 +66,7 @@ public class TradeFunction {
         if (buyVariable.compareTo(BigDecimal.ZERO) == 0) {
             throw new ArithmeticException("Buy variable cannot be zero");
         }
-        if(!basedOnExecution) {
+        if(basedOnMarketRate) {
             sellVariable = sellVariable.subtract(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP)); 
             buyVariable = buyVariable.add(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP));
         }
@@ -82,7 +90,7 @@ public class TradeFunction {
         if (denominator.compareTo(BigDecimal.ZERO) == 0) {
             throw new ArithmeticException("Denominator cannot be zero");
         }
-        if(!basedOnExecution) {
+        if(basedOnMarketRate) {
             buyVariable = buyVariable.add(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP)); 
         } 
         return buyVariable.multiply(tradeProfit.divide(denominator, 10, RoundingMode.HALF_UP).add(BigDecimal.ONE));
@@ -97,7 +105,7 @@ public class TradeFunction {
         if (denominator.compareTo(BigDecimal.ZERO) == 0) {
             throw new ArithmeticException("Denominator cannot be zero");
         }
-        if(!basedOnExecution) {
+        if(basedOnMarketRate) {
             sellVariable = sellVariable.subtract(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP)); 
         }
         BigDecimal divisor = tradeProfit.divide(denominator, 10, RoundingMode.HALF_UP).add(BigDecimal.ONE);
@@ -112,7 +120,7 @@ public class TradeFunction {
         if (divisor.compareTo(BigDecimal.ZERO) == 0) {
             throw new ArithmeticException("Divisor cannot be zero");
         }
-        if(!basedOnExecution) {
+        if(basedOnMarketRate) {
             sellVariable = sellVariable.subtract(spread.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP)); 
         }
         return sellVariable.divide(divisor, 10, RoundingMode.HALF_UP);

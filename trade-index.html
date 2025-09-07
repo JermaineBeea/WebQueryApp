@@ -51,7 +51,7 @@
         spread: 0.01,
         rateKA: 17.7055,
         ratePN: 1,
-        basedOnExecution: true
+        basedOnMarketRate: false  // Changed from basedOnExecution to basedOnMarketRate, default false
     };
 
     const PROMPT_TO_RESET_TO_ZERO = true;
@@ -59,11 +59,11 @@
 
     // Example values for the "Revert to Defaults" button (testing/demo purposes)
     const EXAMPLE_VALUES = {
-        'tradeprofit': { min: -103.00, max: 500.00 },
-        'profitfactor': { min: -0.05, max: 0.10 },
-        'tradeamount': { min: 1000.00, max: 50000.00 },
-        'buyvariable': { min: 16.50, max: 18.50 },
-        'sellvariable': { min: 16.40, max: 18.60 }
+        'tradeprofit': { min: -88, max: -88 },
+        'profitfactor': { min:-0.000497021, max: -0.000497021 },
+        'tradeamount': { min: 10000.00, max: 10000.00 },
+        'buyvariable': { min: 17.6967, max: 17.6967 },
+        'sellvariable': { min: 17.7055, max: 17.7055 }
     };
   </script>
 
@@ -96,9 +96,9 @@
       <button onclick="resetToZero()" class="red">Reset to Zero</button>
 
       <div class="toggle-container" title="Toggle calculation mode">
-        <span style="font-weight:600;color:#334155">Based on Execution</span>
+        <span style="font-weight:600;color:#334155">Based on Market Rate</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="basedOnExecution"/>
+          <input type="checkbox" id="basedOnMarketRate"/>
           <span class="slider"></span>
         </label>
       </div>
@@ -129,7 +129,7 @@
     document.getElementById('spread').value = APP_DEFAULTS.spread;
     document.getElementById('rateKA').value = APP_DEFAULTS.rateKA;
     document.getElementById('ratePN').value = APP_DEFAULTS.ratePN;
-    document.getElementById('basedOnExecution').checked = APP_DEFAULTS.basedOnExecution;
+    document.getElementById('basedOnMarketRate').checked = APP_DEFAULTS.basedOnMarketRate;
 
     let currentData = [];
 
@@ -283,7 +283,7 @@
         spread: parseFloat(document.getElementById('spread').value) || APP_DEFAULTS.spread,
         rateKA: parseFloat(document.getElementById('rateKA').value) || APP_DEFAULTS.rateKA,
         ratePN: parseFloat(document.getElementById('ratePN').value) || APP_DEFAULTS.ratePN,
-        basedOnExecution: document.getElementById('basedOnExecution').checked ?? APP_DEFAULTS.basedOnExecution
+        basedOnMarketRate: document.getElementById('basedOnMarketRate').checked ?? APP_DEFAULTS.basedOnMarketRate
       };
       
       console.log('Running calculations with parameters:', params);

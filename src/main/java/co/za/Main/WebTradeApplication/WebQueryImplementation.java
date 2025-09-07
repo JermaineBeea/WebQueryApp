@@ -6,15 +6,14 @@ import co.za.Main.TradeModules.TradeFunction;
 
 public class WebQueryImplementation {
     
-    private boolean basedOnExecution;
     private TradeFunction tradeFunction;
     
-    public WebQueryImplementation(boolean basedOnExecution, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
-        this.basedOnExecution = basedOnExecution;
-        this.tradeFunction = new TradeFunction(basedOnExecution, spread, rateKA, ratePN);
+    public WebQueryImplementation(boolean basedOnMarketRate, BigDecimal spread, BigDecimal rateKA, BigDecimal ratePN) {
+        this.tradeFunction = new TradeFunction(spread, rateKA, ratePN);
+        this.tradeFunction.setBasedOnMarketRate(basedOnMarketRate);
         
         System.out.println("=== Enhanced Trade Query Implementation Initialized ===");
-        System.out.println("Based on Execution: " + basedOnExecution);
+        System.out.println("Based on Market Rate: " + basedOnMarketRate);
         System.out.println("Spread: " + spread);
         System.out.println("Rate KA: " + rateKA);
         System.out.println("Rate PN: " + ratePN);
@@ -22,7 +21,7 @@ public class WebQueryImplementation {
     
     public void populateTable(WebAppDataBase db) throws SQLException {
         System.out.println("=== Running Enhanced Trade Calculations ===");
-        System.out.println("Execution Mode: " + (basedOnExecution ? "EXECUTION-BASED" : "STANDARD"));
+        System.out.println("Calculation Mode: " + (tradeFunction.isBasedOnMarketRate() ? "MARKET-BASED" : "EXECUTION-BASED"));
         
         try {
             // FIXED: Refresh input values first to get current state from web interface
@@ -94,7 +93,7 @@ public class WebQueryImplementation {
             if (buyVariableMax.compareTo(BigDecimal.ZERO) > 0 && sellVariableMin.compareTo(BigDecimal.ZERO) > 0 &&
                 buyVariableMin.compareTo(BigDecimal.ZERO) > 0 && sellVariableMax.compareTo(BigDecimal.ZERO) > 0) {
                 
-                // Let TradeFunction handle execution mode - NO additional adjustments
+                // TradeFunction handles the market rate mode internally
                 BigDecimal tradeProfitFactorMin = tradeFunction.returnProfitFactor(sellVariableMin, buyVariableMax);
                 BigDecimal tradeProfitFactorMax = tradeFunction.returnProfitFactor(sellVariableMax, buyVariableMin);
                 BigDecimal tradeProfitMinResult = tradeFunction.returnProfit(tradeAmountMin, sellVariableMin, buyVariableMax);
@@ -103,7 +102,7 @@ public class WebQueryImplementation {
                 db.updateQueryResult("tradeprofit", tradeProfitFactorMin, tradeProfitFactorMax, 
                                    tradeProfitMinResult, tradeProfitMaxResult);
                 System.out.println("✅ Updated tradeprofit calculations (Mode: " + 
-                                 (basedOnExecution ? "EXECUTION" : "STANDARD") + ")");
+                                 (tradeFunction.isBasedOnMarketRate() ? "MARKET" : "EXECUTION") + ")");
             } else {
                 System.out.println("⚠️ Skipping tradeprofit calculation - invalid input values");
                 db.updateQueryResult("tradeprofit", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
@@ -120,14 +119,14 @@ public class WebQueryImplementation {
                                            BigDecimal profitFactorMin, BigDecimal profitFactorMax) throws SQLException {
         try {
             if (tradeAmountMax.compareTo(BigDecimal.ZERO) > 0 && tradeAmountMin.compareTo(BigDecimal.ZERO) > 0) {
-                // Let TradeFunction handle execution mode - NO additional adjustments
+                // TradeFunction handles the market rate mode internally
                 BigDecimal factorReturnMin = tradeFunction.returnFactorBasedOnAmount(tradeProfitMin, tradeAmountMax);
                 BigDecimal factorReturnMax = tradeFunction.returnFactorBasedOnAmount(tradeProfitMax, tradeAmountMin);
                 
                 db.updateQueryResult("profitfactor", profitFactorMin, profitFactorMax, 
                                    factorReturnMin, factorReturnMax);
                 System.out.println("✅ Updated profitfactor calculations (Mode: " + 
-                                 (basedOnExecution ? "EXECUTION" : "STANDARD") + ")");
+                                 (tradeFunction.isBasedOnMarketRate() ? "MARKET" : "EXECUTION") + ")");
             } else {
                 System.out.println("⚠️ Skipping profitfactor calculation - invalid trade amount values");
                 db.updateQueryResult("profitfactor", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
@@ -148,7 +147,7 @@ public class WebQueryImplementation {
                 buyVariableMax.compareTo(BigDecimal.ZERO) > 0 && buyVariableMin.compareTo(BigDecimal.ZERO) > 0 &&
                 sellVariableMin.compareTo(BigDecimal.ZERO) > 0 && sellVariableMax.compareTo(BigDecimal.ZERO) > 0) {
                 
-                // Let TradeFunction handle execution mode - NO additional adjustments
+                // TradeFunction handles the market rate mode internally
                 BigDecimal tradeAmountProfitFactorMin = tradeFunction.returnFactorTradeAmount(profitFactorMin, tradeProfitMax);
                 BigDecimal tradeAmountProfitFactorMax = tradeFunction.returnFactorTradeAmount(profitFactorMax, tradeProfitMin);
                 BigDecimal tradeAmountProfitMinResult = tradeFunction.returnTradeAmount(tradeProfitMin, sellVariableMin, buyVariableMax);
@@ -157,7 +156,7 @@ public class WebQueryImplementation {
                 db.updateQueryResult("tradeamount", tradeAmountProfitFactorMin, tradeAmountProfitFactorMax, 
                                    tradeAmountProfitMinResult, tradeAmountProfitMaxResult);
                 System.out.println("✅ Updated tradeamount calculations (Mode: " + 
-                                 (basedOnExecution ? "EXECUTION" : "STANDARD") + ")");
+                                 (tradeFunction.isBasedOnMarketRate() ? "MARKET" : "EXECUTION") + ")");
             } else {
                 System.out.println("⚠️ Skipping tradeamount calculation - invalid input values");
                 db.updateQueryResult("tradeamount", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
@@ -178,7 +177,7 @@ public class WebQueryImplementation {
                 buyVariableMin.compareTo(BigDecimal.ZERO) > 0 && buyVariableMax.compareTo(BigDecimal.ZERO) > 0 &&
                 profitFactorMin.compareTo(BigDecimal.ZERO) != 0 && profitFactorMax.compareTo(BigDecimal.ZERO) != 0) {
                 
-                // Let TradeFunction handle execution mode - NO additional adjustments
+                // TradeFunction handles the market rate mode internally
                 BigDecimal sellVariableProfitMinResult = tradeFunction.returnSellVariable(tradeAmountMax, tradeProfitMin, buyVariableMin);
                 BigDecimal sellVariableProfitMaxResult = tradeFunction.returnSellVariable(tradeAmountMin, tradeProfitMax, buyVariableMax);
                 BigDecimal sellVariableProfitFactorMin = tradeFunction.returnFactorSellVariable(profitFactorMin, buyVariableMax);
@@ -187,7 +186,7 @@ public class WebQueryImplementation {
                 db.updateQueryResult("sellvariable", sellVariableProfitFactorMin, sellVariableProfitFactorMax, 
                                    sellVariableProfitMinResult, sellVariableProfitMaxResult);
                 System.out.println("✅ Updated sellvariable calculations (Mode: " + 
-                                 (basedOnExecution ? "EXECUTION" : "STANDARD") + ")");
+                                 (tradeFunction.isBasedOnMarketRate() ? "MARKET" : "EXECUTION") + ")");
             } else {
                 System.out.println("⚠️ Skipping sellvariable calculation - invalid input values");
                 db.updateQueryResult("sellvariable", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
@@ -208,7 +207,7 @@ public class WebQueryImplementation {
                 sellVariableMin.compareTo(BigDecimal.ZERO) > 0 && sellVariableMax.compareTo(BigDecimal.ZERO) > 0 &&
                 tradeAmountMax.compareTo(BigDecimal.ZERO) > 0 && tradeAmountMin.compareTo(BigDecimal.ZERO) > 0) {
                 
-                // Let TradeFunction handle execution mode - NO additional adjustments
+                // TradeFunction handles the market rate mode internally
                 BigDecimal buyVariableProfitFactorMin = tradeFunction.returnFactorBuyVariable(profitFactorMax, sellVariableMin);
                 BigDecimal buyVariableProfitFactorMax = tradeFunction.returnFactorBuyVariable(profitFactorMin, sellVariableMax);
                 BigDecimal buyVariableProfitMinResult = tradeFunction.returnBuyVariable(tradeAmountMax, tradeProfitMin, sellVariableMin);
@@ -217,7 +216,7 @@ public class WebQueryImplementation {
                 db.updateQueryResult("buyvariable", buyVariableProfitFactorMin, buyVariableProfitFactorMax, 
                                    buyVariableProfitMinResult, buyVariableProfitMaxResult);
                 System.out.println("✅ Updated buyvariable calculations (Mode: " + 
-                                 (basedOnExecution ? "EXECUTION" : "STANDARD") + ")");
+                                 (tradeFunction.isBasedOnMarketRate() ? "MARKET" : "EXECUTION") + ")");
             } else {
                 System.out.println("⚠️ Skipping buyvariable calculation - invalid input values");
                 db.updateQueryResult("buyvariable", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);

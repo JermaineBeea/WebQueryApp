@@ -26,7 +26,7 @@ public class WebServerApplication {
         server.createContext("/api/data", new DataHandler());
         server.createContext("/api/update", new UpdateHandler());
         server.createContext("/api/query", new QueryHandler());
-        server.createContext("/api/reset", new ResetHandler()); // NEW: Reset endpoint
+        server.createContext("/api/reset", new ResetHandler()); // Reset endpoint
         
         server.start();
         System.out.println("Trade Web Server running at: http://localhost:8080");
@@ -102,7 +102,7 @@ public class WebServerApplication {
         }
     }
     
-    // NEW: Reset Handler
+    // Reset Handler
     class ResetHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -158,13 +158,13 @@ public class WebServerApplication {
                     String body = readBody(exchange);
                     
                     // Parse all parameters from the request
-                    boolean basedOnExecution = parseBooleanValue(body, "basedOnExecution");
+                    boolean basedOnMarketRate = parseBooleanValue(body, "basedOnMarketRate");
                     BigDecimal spread = parseDecimalValue(body, "spread", new BigDecimal("0.001"));
                     BigDecimal rateKA = parseDecimalValue(body, "rateKA", new BigDecimal("0.95"));
                     BigDecimal ratePN = parseDecimalValue(body, "ratePN", new BigDecimal("0.98"));
                     
                     System.out.println("Query Parameters:");
-                    System.out.println("- Based on Execution: " + basedOnExecution);
+                    System.out.println("- Based on Market Rate: " + basedOnMarketRate);
                     System.out.println("- Spread: " + spread);
                     System.out.println("- Rate KA: " + rateKA);
                     System.out.println("- Rate PN: " + ratePN);
@@ -172,13 +172,13 @@ public class WebServerApplication {
                     try (WebAppDataBase db = new WebAppDataBase()) {
                         // Create enhanced query implementation with custom parameters
                         WebQueryImplementation queryImpl = new WebQueryImplementation(
-                            basedOnExecution, spread, rateKA, ratePN);
+                            basedOnMarketRate, spread, rateKA, ratePN);
                         queryImpl.populateTable(db);
                         
                         String json = buildDataJson(db);
                         String responseMsg = String.format(
                             "Query executed successfully! (Mode: %s, Spread: %s, RateKA: %s, RatePN: %s)", 
-                            basedOnExecution ? "Execution-Based" : "Standard", 
+                            basedOnMarketRate ? "Market-Based" : "Execution-Based", 
                             spread, rateKA, ratePN
                         );
                         
@@ -301,7 +301,7 @@ public class WebServerApplication {
                 <div class="error">
                     <h3>Missing Interface File</h3>
                     <p>Please save the enhanced HTML interface as <strong>%s</strong> in your project root directory.</p>
-                    <p>The interface includes controls for spread, rateKA, ratePN, and the basedOnExecution toggle.</p>
+                    <p>The interface includes controls for spread, rateKA, ratePN, and the basedOnMarketRate toggle.</p>
                 </div>
             </body>
             </html>
