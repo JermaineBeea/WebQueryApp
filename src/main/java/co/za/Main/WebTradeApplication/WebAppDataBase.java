@@ -3,7 +3,6 @@ package co.za.Main.WebTradeApplication;
 import java.math.BigDecimal;
 import java.sql.*;
 
-import static co.za.Main.WebTradeApplication.WebVariableDefaults.*;
 
 public class WebAppDataBase implements AutoCloseable {
 
@@ -31,39 +30,37 @@ public class WebAppDataBase implements AutoCloseable {
             """, tableName);
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
-            ensureTablePopulated(); // Changed method name for clarity
+            populateTable(); // Changed method name for clarity
         }
     }
 
-    private void ensureTablePopulated() throws SQLException {
+    private void populateTable() throws SQLException {
         // Check if table is already populated
         try (Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
+             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
             if (rs.next() && rs.getInt(1) > 0) {
-                System.out.println("Table already populated with " + rs.getInt(1) + " variables");
-                return; // Table already has data, don't repopulate
+                return; // Table already has data
             }
         }
         
-        System.out.println("Populating table with realistic default values...");
         try (Statement stmt = connection.createStatement()) {
-            // CHANGE: Use meaningful defaults instead of all zeros
-            insertVariableWithDefaults(stmt, "tradeprofit", DEFAULT_TRADE_PROFIT_MIN , DEFAULT_TRADE_PROFIT_MAX);
-            insertVariableWithDefaults(stmt, "profitfactor", DEFAULT_PROFIT_FACTOR_MIN, DEFAULT_PROFIT_FACTOR_MAX);
-            insertVariableWithDefaults(stmt, "tradeamount", DEFAULT_TRADE_AMOUNT_MIN, DEFAULT_TRADE_AMOUNT_MAX);
-            insertVariableWithDefaults(stmt, "buyvariable", DEFAULT_BUY_VARIABLE_MIN, DEFAULT_BUY_VARIABLE_MAX);
-            insertVariableWithDefaults(stmt, "sellvariable", DEFAULT_SELL_VARIABLE_MIN, DEFAULT_SELL_VARIABLE_MAX);
+            String[] variables = {
+                "tradeprofit",
+                "profitfactor", 
+                "tradeamount",
+                "buyvariable",
+                "sellvariable"
+            };
             
-            System.out.println("Initial population completed with realistic defaults.");
+            for (String variable : variables) {
+                stmt.execute(String.format(
+                    "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', 0, 0, 0, 0, 0, 0)",
+                    tableName, variable));
+            }
         }
     }
 
-    private void insertVariableWithDefaults(Statement stmt, String variable, String min, String max) throws SQLException {
-        stmt.execute(String.format(
-            "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, 0, 0, 0, 0)",
-            tableName, variable, min, max));
-        System.out.println("Set defaults for " + variable + ": " + min + " to " + max);
-    }
+
 
     public BigDecimal getValueFromColumn(String variable, String columnName) throws SQLException {
         String sql = String.format("SELECT %s FROM %s WHERE variable = ?", columnName, tableName);
