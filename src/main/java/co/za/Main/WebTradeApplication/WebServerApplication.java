@@ -255,16 +255,13 @@ public class WebServerApplication {
             String var = variables[i];
             BigDecimal max = db.getValueFromColumn(var, "maximum");
             BigDecimal min = db.getValueFromColumn(var, "minimum");
-            BigDecimal factorMin = db.getValueFromColumn(var, "factormin");
-            BigDecimal factorMax = db.getValueFromColumn(var, "factormax");
             BigDecimal returnMin = db.getValueFromColumn(var, "returnmin");
             BigDecimal returnMax = db.getValueFromColumn(var, "returnmax");
             
             json.append(String.format(
                 "{\"variable\":\"%s\",\"maximum\":\"%s\",\"minimum\":\"%s\"," +
-                "\"factormin\":\"%s\",\"factormax\":\"%s\",\"returnmin\":\"%s\",\"returnmax\":\"%s\"}",
+                "\"returnmin\":\"%s\",\"returnmax\":\"%s\"}",
                 var, max.toPlainString(), min.toPlainString(),
-                factorMin.toPlainString(), factorMax.toPlainString(),
                 returnMin.toPlainString(), returnMax.toPlainString()));
             
             if (i < variables.length - 1) json.append(",");
@@ -300,7 +297,7 @@ public class WebServerApplication {
                 <h1>Trade Web Application</h1>
                 <div class="error">
                     <h3>Missing Interface File</h3>
-                    <p>Please save the enhanced HTML interface as <strong>%s</strong> in your project root directory.</p>
+                    <p>Please save the updated HTML interface as <strong>%s</strong> in your project root directory.</p>
                     <p>The interface includes controls for spread, rateKA, ratePN, and the basedOnMarketRate toggle.</p>
                 </div>
             </body>

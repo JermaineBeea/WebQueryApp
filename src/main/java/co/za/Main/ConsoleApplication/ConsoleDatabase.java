@@ -52,8 +52,6 @@ public class ConsoleDatabase {
                 variable VARCHAR(50) DEFAULT '0',
                 maximum DECIMAL(20,8) DEFAULT 0,
                 minimum DECIMAL(20,8) DEFAULT 0,
-                factormin DECIMAL(20,8) DEFAULT 0,
-                factormax DECIMAL(20,8) DEFAULT 0,
                 returnmin DECIMAL(20,8) DEFAULT 0,
                 returnmax DECIMAL(20,8) DEFAULT 0
             )
@@ -80,7 +78,7 @@ public class ConsoleDatabase {
 
     private void insertVariable(Statement stmt, String variable, String min, String max) throws SQLException {
         stmt.execute(String.format(
-            "INSERT INTO %s (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, 0, 0, 0, 0)",
+            "INSERT INTO %s (variable, minimum, maximum, returnmin, returnmax) VALUES ('%s', %s, %s, 0, 0)",
             tableName, variable, min, max));
     }
 
@@ -98,40 +96,32 @@ public class ConsoleDatabase {
             BigDecimal sellVariableMax = getValueFromColumn("sellvariable", "maximum");
 
             try (PreparedStatement pstmt = connection.prepareStatement(
-                    "UPDATE " + tableName + " SET factormin = ?, factormax = ?, returnmin = ?, returnmax = ? WHERE variable = ?")) {
+                    "UPDATE " + tableName + " SET returnmin = ?, returnmax = ? WHERE variable = ?")) {
                 
-                // Calculate profit factors for all calculations
-                BigDecimal tradeProfitFactorMin = tradeFunction.returnProfitFactor(sellVariableMin, buyVariableMax);
-                BigDecimal tradeProfitFactorMax = tradeFunction.returnProfitFactor(sellVariableMax, buyVariableMin);
+                // Calculate profit results for all calculations
                 BigDecimal tradeProfitMinResult = tradeFunction.returnProfit(tradeAmountMin, sellVariableMin, buyVariableMax);
                 BigDecimal tradeProfitMaxResult = tradeFunction.returnProfit(tradeAmountMax, sellVariableMax, buyVariableMin);
-                updateQueryResult(pstmt, "tradeprofit", tradeProfitFactorMin, tradeProfitFactorMax, tradeProfitMinResult, tradeProfitMaxResult);
+                updateQueryResult(pstmt, "tradeprofit", tradeProfitMinResult, tradeProfitMaxResult);
 
-                // Calculate profit factors for all calculations
-                BigDecimal factorReturnMin = tradeFunction.returnFactorBasedOnAmount(tradeProfitMin, tradeAmountMax);
-                BigDecimal factorReturnMax = tradeFunction.returnFactorBasedOnAmount(tradeProfitMax, tradeAmountMin);
-                updateQueryResult(pstmt, "profitfactor", profitFactorMin, profitFactorMax, factorReturnMin, factorReturnMax);
+                // Calculate profit factor results
+                BigDecimal profitFactorMinResult = tradeFunction.returnProfitFactor(sellVariableMin, buyVariableMax);
+                BigDecimal profitFactorMaxResult = tradeFunction.returnProfitFactor(sellVariableMax, buyVariableMin);
+                updateQueryResult(pstmt, "profitfactor", profitFactorMinResult, profitFactorMaxResult);
 
                 // Update trade amount calculations
-                BigDecimal tradeAmountProfitFactorMin = tradeFunction.returnFactorTradeAmount(profitFactorMin, tradeProfitMax);
-                BigDecimal tradeAmountProfitFactorMax = tradeFunction.returnFactorTradeAmount(profitFactorMax, tradeProfitMin);
                 BigDecimal tradeAmountProfitMinResult = tradeFunction.returnTradeAmount(tradeProfitMin, sellVariableMin, buyVariableMax);
                 BigDecimal tradeAmountProfitMaxResult = tradeFunction.returnTradeAmount(tradeProfitMax, sellVariableMax, buyVariableMin);
-                updateQueryResult(pstmt, "tradeamount", tradeAmountProfitFactorMin, tradeAmountProfitFactorMax, tradeAmountProfitMinResult, tradeAmountProfitMaxResult);
+                updateQueryResult(pstmt, "tradeamount", tradeAmountProfitMinResult, tradeAmountProfitMaxResult);
 
                 // Update sell variable calculations
                 BigDecimal sellVariableProfitMinResult = tradeFunction.returnSellVariable(tradeAmountMax, tradeProfitMin, buyVariableMin);
                 BigDecimal sellVariableProfitMaxResult = tradeFunction.returnSellVariable(tradeAmountMin, tradeProfitMax, buyVariableMax);
-                BigDecimal sellVariableProfitFactorMin = tradeFunction.returnFactorSellVariable(profitFactorMin, buyVariableMax);
-                BigDecimal sellVariableProfitFactorMax = tradeFunction.returnFactorSellVariable(profitFactorMax, buyVariableMin);
-                updateQueryResult(pstmt, "sellvariable", sellVariableProfitFactorMin, sellVariableProfitFactorMax, sellVariableProfitMinResult, sellVariableProfitMaxResult);
+                updateQueryResult(pstmt, "sellvariable", sellVariableProfitMinResult, sellVariableProfitMaxResult);
 
                 // Update buy variable calculations
-                BigDecimal buyVariableProfitFactorMin = tradeFunction.returnFactorBuyVariable(profitFactorMax, sellVariableMin);
-                BigDecimal buyVariableProfitFactorMax = tradeFunction.returnFactorBuyVariable(profitFactorMin, sellVariableMax);     
                 BigDecimal buyVariableProfitMinResult = tradeFunction.returnBuyVariable(tradeAmountMax, tradeProfitMin, sellVariableMin);
                 BigDecimal buyVariableProfitMaxResult = tradeFunction.returnBuyVariable(tradeAmountMin, tradeProfitMax, sellVariableMax);
-                updateQueryResult(pstmt, "buyvariable", buyVariableProfitFactorMin, buyVariableProfitFactorMax, buyVariableProfitMinResult, buyVariableProfitMaxResult);
+                updateQueryResult(pstmt, "buyvariable", buyVariableProfitMinResult, buyVariableProfitMaxResult);
             }
 
         } catch (SQLException e) {
@@ -143,12 +133,10 @@ public class ConsoleDatabase {
         }
     }
 
-    private void updateQueryResult(PreparedStatement pstmt, String variable, BigDecimal factorMinResult, BigDecimal factorMaxResult, BigDecimal minResult, BigDecimal maxResult) throws SQLException {
-        pstmt.setBigDecimal(1, factorMinResult);
-        pstmt.setBigDecimal(2, factorMaxResult);
-        pstmt.setBigDecimal(3, minResult);
-        pstmt.setBigDecimal(4, maxResult);
-        pstmt.setString(5, variable);
+    private void updateQueryResult(PreparedStatement pstmt, String variable, BigDecimal minResult, BigDecimal maxResult) throws SQLException {
+        pstmt.setBigDecimal(1, minResult);
+        pstmt.setBigDecimal(2, maxResult);
+        pstmt.setString(3, variable);
         pstmt.executeUpdate();
     }
 
@@ -192,7 +180,7 @@ public class ConsoleDatabase {
              java.io.PrintWriter printWriter = new java.io.PrintWriter(writer)) {
             
             // Write CSV header
-            printWriter.println("variable,maximum,minimum,factormin,factormax,returnmin,returnmax");
+            printWriter.println("variable,maximum,minimum,returnmin,returnmax");
             
             // Write data
             String sql = "SELECT * FROM " + tableName;
@@ -200,12 +188,10 @@ public class ConsoleDatabase {
                  ResultSet rs = stmt.executeQuery(sql)) {
                 
                 while (rs.next()) {
-                    printWriter.printf("%s,%s,%s,%s,%s,%s,%s%n",
+                    printWriter.printf("%s,%s,%s,%s,%s%n",
                         rs.getString("variable"),
                         rs.getBigDecimal("maximum").toPlainString(),
                         rs.getBigDecimal("minimum").toPlainString(),
-                        rs.getBigDecimal("factormin").toPlainString(),
-                        rs.getBigDecimal("factormax").toPlainString(),
                         rs.getBigDecimal("returnmin").toPlainString(),
                         rs.getBigDecimal("returnmax").toPlainString()
                     );
@@ -232,8 +218,6 @@ public class ConsoleDatabase {
             printWriter.println("    variable VARCHAR(50) DEFAULT '0',");
             printWriter.println("    maximum DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    minimum DECIMAL(20,8) DEFAULT 0,");
-            printWriter.println("    factormin DECIMAL(20,8) DEFAULT 0,");
-            printWriter.println("    factormax DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    returnmin DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    returnmax DECIMAL(20,8) DEFAULT 0");
             printWriter.println(");");
@@ -246,13 +230,11 @@ public class ConsoleDatabase {
                 
                 printWriter.println("-- Insert data");
                 while (rs.next()) {
-                    printWriter.printf("INSERT INTO %s (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s, %s, %s);%n",
+                    printWriter.printf("INSERT INTO %s (variable, maximum, minimum, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s);%n",
                         tableName, 
                         rs.getString("variable"),
                         rs.getBigDecimal("maximum").toPlainString(),
                         rs.getBigDecimal("minimum").toPlainString(),
-                        rs.getBigDecimal("factormin").toPlainString(),
-                        rs.getBigDecimal("factormax").toPlainString(),
                         rs.getBigDecimal("returnmin").toPlainString(),
                         rs.getBigDecimal("returnmax").toPlainString()
                     );
@@ -283,16 +265,14 @@ public class ConsoleDatabase {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             System.out.println("Variable Database Contents:");
-            System.out.println("Variable\t\tMaximum\t\tMinimum\t\tFactorMin\tFactorMax\tReturnMin\tReturnMax");
-            System.out.println("================================================================================================");
+            System.out.println("Variable\t\tMaximum\t\tMinimum\t\tReturnMin\tReturnMax");
+            System.out.println("========================================================================");
             
             while (rs.next()) {
-                System.out.printf("%-20s\t%s\t%s\t%s\t%s\t%s\t%s%n",
+                System.out.printf("%-20s\t%s\t%s\t%s\t%s%n",
                     rs.getString("variable"),
                     rs.getBigDecimal("maximum").toPlainString(),
                     rs.getBigDecimal("minimum").toPlainString(),
-                    rs.getBigDecimal("factormin").toPlainString(),
-                    rs.getBigDecimal("factormax").toPlainString(),
                     rs.getBigDecimal("returnmin").toPlainString(),
                     rs.getBigDecimal("returnmax").toPlainString()
                 );

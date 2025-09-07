@@ -65,21 +65,6 @@ public class TestTradeFunctions {
     }
 
     @Test
-    public void testReturnFactorBasedOnAmount() {
-        BigDecimal actualFactor = tradeFunction.returnFactorBasedOnAmount(tradeProfit, tradeAmount)
-                .setScale(10, RoundingMode.HALF_UP);
-        
-        BigDecimal diff = tradeProfitFactor.subtract(actualFactor).abs();
-
-        assertTrue(diff.compareTo(TOLERANCE) <= 0,
-            "Expected: " + tradeProfitFactor + ", Actual: " + actualFactor + ", Diff: " + diff);
-
-        logger.info("Expected Factor Based on Amount: " + tradeProfitFactor);
-        logger.info("Actual Factor Based on Amount: " + actualFactor);
-    }
-
-
-    @Test
     public void testReturnTradeAmount() {
         BigDecimal actualTradeAmount = tradeFunction.returnTradeAmount(tradeProfit, sellVariable, buyVariable)
                 .setScale(10, RoundingMode.HALF_UP);
@@ -95,26 +80,10 @@ public class TestTradeFunctions {
     }
 
     @Test
-    public void testReturnFactorTradeAmount() {
-        BigDecimal actualFactorTradeAmount = tradeFunction.returnFactorTradeAmount(tradeProfitFactor, tradeProfit)
-                .setScale(10, RoundingMode.HALF_UP);
-
-        // Use compareTo-based fuzzy check
-        BigDecimal diff = tradeAmount.subtract(actualFactorTradeAmount).abs();
-
-        assertTrue(diff.compareTo(TOLERANCE) <= 0,
-            "Expected: " + tradeAmount + ", Actual: " + actualFactorTradeAmount + ", Diff: " + diff);
-
-        logger.info("Expected Factor Trade Amount: " + tradeAmount);
-        logger.info("Actual Factor Trade Amount: " + actualFactorTradeAmount);
-    }
-
-    @Test
     public void testReturnSellVariable() {
         BigDecimal tradeProfit = new BigDecimal("-88.000000000");
         BigDecimal actualSellVariable = tradeFunction.returnSellVariable(tradeAmount, tradeProfit, buyVariable)
                 .setScale(10, RoundingMode.HALF_UP);
-
 
         BigDecimal diff = sellVariable.subtract(actualSellVariable).abs();
 
@@ -123,20 +92,6 @@ public class TestTradeFunctions {
 
         logger.info("Expected Sell Variable: " + sellVariable);
         logger.info("Actual Sell Variable: " + actualSellVariable);
-    }
-
-    @Test
-    public void testReturnFactorSellVariable() {
-        BigDecimal actualFactorSellVariable = tradeFunction.returnFactorSellVariable(tradeProfitFactor, buyVariable)
-                .setScale(10, RoundingMode.HALF_UP);
-
-        BigDecimal diff = sellVariable.subtract(actualFactorSellVariable).abs();
-
-        assertTrue(diff.compareTo(TOLERANCE) <= 0,
-            "Expected: " + sellVariable + ", Actual: " + actualFactorSellVariable + ", Diff: " + diff);
-
-        logger.info("Expected Factor Sell Variable: " + sellVariable);
-        logger.info("Actual Factor Sell Variable: " + actualFactorSellVariable);
     }
 
     @Test
@@ -154,20 +109,6 @@ public class TestTradeFunctions {
     }
 
     @Test
-    public void testReturnFactorBuyVariable() {
-        BigDecimal actualFactorBuyVariable = tradeFunction.returnFactorBuyVariable(tradeProfitFactor, sellVariable)
-                .setScale(10, RoundingMode.HALF_UP);
-
-        BigDecimal diff = buyVariable.subtract(actualFactorBuyVariable).abs();
-
-        assertTrue(diff.compareTo(TOLERANCE) <= 0,
-            "Expected: " + buyVariable + ", Actual: " + actualFactorBuyVariable + ", Diff: " + diff);
-
-        logger.info("Expected Factor Buy Variable: " + buyVariable);
-        logger.info("Actual Factor Buy Variable: " + actualFactorBuyVariable);
-    }
-
-    @Test
     public void testMarketRateMode() {
         // Test that the setter works
         tradeFunction.setBasedOnMarketRate(true);
@@ -178,5 +119,4 @@ public class TestTradeFunctions {
         
         logger.info("Market rate mode toggle test passed");
     }
-
 }

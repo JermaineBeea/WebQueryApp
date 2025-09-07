@@ -155,7 +155,7 @@ public class ConsoleImplementation {
             return;
         }
         
-        System.out.print("Enter a column to query (maximum, minimum, factormin, factormax, returnmin, returnmax): ");
+        System.out.print("Enter a column to query (maximum, minimum, returnmin, returnmax): ");
         String column = scanner.nextLine().trim().toLowerCase();
         
         // Input validation for column
@@ -163,8 +163,6 @@ public class ConsoleImplementation {
             System.out.println("Invalid column. Available options:");
             System.out.println("- maximum     : Maximum value for this variable");
             System.out.println("- minimum     : Minimum value for this variable");
-            System.out.println("- factormin   : Minimum profit factor calculation");
-            System.out.println("- factormax   : Maximum profit factor calculation");
             System.out.println("- returnmin   : Minimum return calculation");
             System.out.println("- returnmax   : Maximum return calculation");
             return;
@@ -190,7 +188,7 @@ public class ConsoleImplementation {
     }
 
     private static boolean isValidColumn(String column) {
-        return column.matches("maximum|minimum|factormin|factormax|returnmin|returnmax");
+        return column.matches("maximum|minimum|returnmin|returnmax");
     }
 
     private static void provideValueContext(String variable, String column, BigDecimal value) {
@@ -200,12 +198,6 @@ public class ConsoleImplementation {
             case "maximum":
             case "minimum":
                 System.out.println("This is the " + column + " input value set for " + variable + ".");
-                break;
-            case "factormin":
-            case "factormax":
-                System.out.println("This is the " + column.replace("factor", "").replace("min", "minimum").replace("max", "maximum") + 
-                                 " profit factor calculation for " + variable + ".");
-                System.out.println("Profit factor represents the ratio of profit to investment.");
                 break;
             case "returnmin":
             case "returnmax":

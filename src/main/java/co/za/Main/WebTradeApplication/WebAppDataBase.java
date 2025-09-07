@@ -51,8 +51,6 @@ public class WebAppDataBase implements AutoCloseable {
                 variable VARCHAR(50) DEFAULT '0',
                 maximum DECIMAL(20,8) DEFAULT 0,
                 minimum DECIMAL(20,8) DEFAULT 0,
-                factormin DECIMAL(20,8) DEFAULT 0,
-                factormax DECIMAL(20,8) DEFAULT 0,
                 returnmin DECIMAL(20,8) DEFAULT 0,
                 returnmax DECIMAL(20,8) DEFAULT 0
             )
@@ -90,7 +88,7 @@ public class WebAppDataBase implements AutoCloseable {
         String[] variables = {"tradeprofit", "profitfactor", "tradeamount", "buyvariable", "sellvariable"};
         
         String insertSQL = "INSERT INTO " + tableName + 
-            " (variable, minimum, maximum, factormin, factormax, returnmin, returnmax) VALUES (?, 0, 0, 0, 0, 0, 0)";
+            " (variable, minimum, maximum, returnmin, returnmax) VALUES (?, 0, 0, 0, 0)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
             for (String variable : variables) {
@@ -120,7 +118,7 @@ public class WebAppDataBase implements AutoCloseable {
     public void resetAllValuesToZero() throws SQLException {
         System.out.println("Resetting ALL values to zero...");
         
-        String sql = "UPDATE " + tableName + " SET minimum = 0, maximum = 0, factormin = 0, factormax = 0, returnmin = 0, returnmax = 0";
+        String sql = "UPDATE " + tableName + " SET minimum = 0, maximum = 0, returnmin = 0, returnmax = 0";
         try (Statement stmt = connection.createStatement()) {
             int rowsAffected = stmt.executeUpdate(sql);
             System.out.println("Reset " + rowsAffected + " rows - all values set to zero.");
@@ -153,20 +151,17 @@ public class WebAppDataBase implements AutoCloseable {
         }
     }
 
-    public void updateQueryResult(String variable, BigDecimal factorMin, BigDecimal factorMax, 
-                                BigDecimal returnMin, BigDecimal returnMax) throws SQLException {
-        String sql = "UPDATE " + tableName + " SET factormin = ?, factormax = ?, returnmin = ?, returnmax = ? WHERE variable = ?";
+    public void updateQueryResult(String variable, BigDecimal returnMin, BigDecimal returnMax) throws SQLException {
+        String sql = "UPDATE " + tableName + " SET returnmin = ?, returnmax = ? WHERE variable = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setBigDecimal(1, factorMin);
-            pstmt.setBigDecimal(2, factorMax);
-            pstmt.setBigDecimal(3, returnMin);
-            pstmt.setBigDecimal(4, returnMax);
-            pstmt.setString(5, variable);
+            pstmt.setBigDecimal(1, returnMin);
+            pstmt.setBigDecimal(2, returnMax);
+            pstmt.setString(3, variable);
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("Updated calculations for " + variable + 
-                    " - factormin: " + factorMin.toPlainString() +
-                    ", factormax: " + factorMax.toPlainString());
+                    " - returnmin: " + returnMin.toPlainString() +
+                    ", returnmax: " + returnMax.toPlainString());
             }
         }
     }
@@ -203,8 +198,6 @@ public class WebAppDataBase implements AutoCloseable {
             printWriter.println("    variable VARCHAR(50) DEFAULT '0',");
             printWriter.println("    maximum DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    minimum DECIMAL(20,8) DEFAULT 0,");
-            printWriter.println("    factormin DECIMAL(20,8) DEFAULT 0,");
-            printWriter.println("    factormax DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    returnmin DECIMAL(20,8) DEFAULT 0,");
             printWriter.println("    returnmax DECIMAL(20,8) DEFAULT 0");
             printWriter.println(");");
@@ -217,13 +210,11 @@ public class WebAppDataBase implements AutoCloseable {
                 printWriter.println("-- Insert data");
                 while (rs.next()) {
                     printWriter.printf(
-                        "INSERT INTO %s (variable, maximum, minimum, factormin, factormax, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s, %s, %s);%n",
+                        "INSERT INTO %s (variable, maximum, minimum, returnmin, returnmax) VALUES ('%s', %s, %s, %s, %s);%n",
                         tableName,
                         rs.getString("variable"),
                         rs.getBigDecimal("maximum").toPlainString(),
                         rs.getBigDecimal("minimum").toPlainString(),
-                        rs.getBigDecimal("factormin").toPlainString(),
-                        rs.getBigDecimal("factormax").toPlainString(),
                         rs.getBigDecimal("returnmin").toPlainString(),
                         rs.getBigDecimal("returnmax").toPlainString()
                     );
@@ -245,16 +236,14 @@ public class WebAppDataBase implements AutoCloseable {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             System.out.println("Trade Variable Database Contents:");
-            System.out.println("Variable\t\tMaximum\t\tMinimum\t\tFactorMin\tFactorMax\tReturnMin\tReturnMax");
-            System.out.println("================================================================================================");
+            System.out.println("Variable\t\tMaximum\t\tMinimum\t\tReturnMin\tReturnMax");
+            System.out.println("========================================================================");
             
             while (rs.next()) {
-                System.out.printf("%-20s\t%s\t%s\t%s\t%s\t%s\t%s%n",
+                System.out.printf("%-20s\t%s\t%s\t%s\t%s%n",
                     rs.getString("variable"),
                     rs.getBigDecimal("maximum").toPlainString(),
                     rs.getBigDecimal("minimum").toPlainString(),
-                    rs.getBigDecimal("factormin").toPlainString(),
-                    rs.getBigDecimal("factormax").toPlainString(),
                     rs.getBigDecimal("returnmin").toPlainString(),
                     rs.getBigDecimal("returnmax").toPlainString()
                 );
