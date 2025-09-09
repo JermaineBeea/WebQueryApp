@@ -1,5 +1,5 @@
 -- WebAppDataBase Export
--- Generated on: Sun Sep 07 17:42:13 UTC 2025
+-- Generated on: Tue Sep 09 09:06:52 SAST 2025
 
 DROP TABLE IF EXISTS WebAppDataBase;
 
@@ -12,10 +12,10 @@ CREATE TABLE WebAppDataBase (
 );
 
 -- Insert data
-INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('tradeprofit', -88, -88, -88.0000000385, -88.0000000385);
-INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('profitfactor', -0.000497021, -0.000497021, -0.0004970207, -0.0004970207);
-INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('tradeamount', 10000, 10000, 9999.999995625, 9999.999995625);
-INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('buyvariable', 17.7055, 17.7055, 17.7055, 17.7055);
-INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('sellvariable', 17.6967, 17.6967, 17.6966999999961, 17.6966999999961);
+INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('tradeprofit', 0, 0, 0, 0);
+INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('profitfactor', 0, 0, 0, 0);
+INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('tradeamount', 0, 0, 0, 0);
+INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('buyvariable', 0, 0, 0, 0);
+INSERT INTO WebAppDataBase (variable, maximum, minimum, returnmin, returnmax) VALUES ('sellvariable', 0, 0, 0, 0);
 
 -- End of export
